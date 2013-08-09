@@ -5,12 +5,12 @@ CLIB	= $(CC65BASE)/lib/c64.lib
 CC	= cc65 -Or -O --create-dep -Cl -tc64 -T -I $(CC65BASE)/include/ 
 # CC	= cc65 --create-dep -Cl -tc64 -T -I $(CC65BASE)/include/ 
 AS	= ca65 --cpu 6502x # -l
-LD	= ld65 -C nop2.cfg -m nop2.map -Ln nop2.lbl 
+LD	= ld65 -C nop.cfg -m nop.map -Ln nop.lbl 
 C1541  	= ~/bin/c1541
 DEPDIR = .dep
 
 
-all:   	nop2
+all:   	nop
 
 # --------------------------------------------------------------------------
 # Generic rules
@@ -40,20 +40,20 @@ OBJS = main.o
 # --------------------------------------------------------------------------
 # Rules how to make each one of the binaries
 
-EXELIST=nop2
+EXELIST=nop
 
-nop2.d64:
-	$(C1541) -format nop2,AA  d64 nop2.d64 > /dev/null
+nop.d64:
+	$(C1541) -format nop,AA  d64 nop.d64 > /dev/null
 
-nop2: 		$(OBJS) $(CLIB) nop2.d64
+nop: 		$(OBJS) $(CLIB) nop.d64
 	@$(LD) -o $@ $(OBJS) $(CLIB)
 	@for exe in $(EXELIST); do\
-	    $(C1541) -attach nop2.d64 -delete $$exe  > /dev/null;\
-	    $(C1541) -attach nop2.d64 -write $$exe  > /dev/null;\
+	    $(C1541) -attach nop.d64 -delete $$exe  > /dev/null;\
+	    $(C1541) -attach nop.d64 -write $$exe  > /dev/null;\
 	done;
 
-run: nop2
-	x64 nop2.d64
+run: nop
+	x64 nop.d64
 
 # --------------------------------------------------------------------------
 # Cleanup rules

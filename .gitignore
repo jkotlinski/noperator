@@ -3,6 +3,6 @@
 *.d64
 *.lbl
 *.map
-nop2
+noperator
 .dep
 tags
