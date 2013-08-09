@@ -1,0 +1,8 @@
+*.o
+*.a
+*.d64
+*.lbl
+*.map
+nop2
+.dep
+tags

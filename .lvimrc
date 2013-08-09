@@ -1,0 +1,6 @@
+map <F4> :wall!<CR>:!ctags -R . &<CR>:make -j 2<CR>:make run<CR>
+map <F5> :!x64 nop2<CR>
+
+set tags+=~/.vim/cc65tags
+
+set errorformat=%f(%l):\ Error:\ %m
