@@ -23,8 +23,6 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 #include <time.h>
 
-#define SPACE 32
-
 char curx;
 char cury;
 unsigned char color = COLOR_WHITE;
@@ -48,7 +46,7 @@ static void show_cursor(void) {
 void __fastcall__ startirq(void);
 static void init(void) {
     *(int*)0xd020 = 0;
-    memset((char*)0x400, SPACE, 40 * 25);
+    memset((char*)0x400, ' ', 40 * 25);
 
     // startirq();
 
@@ -64,7 +62,7 @@ static void screen_left() {
     memmove((char*)0x400, (char*)0x401, 40 * 25 - 1);
     memmove((char*)0xd800, (char*)0xd801, 40 * 25 - 1);
     for (ptr = (char*)0x400 + 39; ptr < (char*)0x400 + 39 + 40 * 25; ptr += 40)
-        *ptr = SPACE;
+        *ptr = ' ';
 }
 
 static void screen_right() {
@@ -72,19 +70,19 @@ static void screen_right() {
     memmove((char*)0x401, (char*)0x400, 40 * 25 - 1);
     memmove((char*)0xd801, (char*)0xd800, 40 * 25 - 1);
     for (ptr = (char*)0x400; ptr < (char*)0x400 + 40 * 25; ptr += 40)
-        *ptr = SPACE;
+        *ptr = ' ';
 }
 
 static void screen_down() {
     memmove((char*)0x400 + 40, (char*)0x400, 40 * 25 - 40);
     memmove((char*)0xd800 + 40, (char*)0xd800, 40 * 25 - 40);
-    memset((char*)0x400, SPACE, 40);
+    memset((char*)0x400, ' ', 40);
 }
 
 static void screen_up() {
     memmove((char*)0x400, (char*)0x400 + 40, 40 * 25 - 40);
     memmove((char*)0xd800, (char*)0xd800 + 40, 40 * 25 - 40);
-    memset((char*)0x400 + 40 * 24, SPACE, 40);
+    memset((char*)0x400 + 40 * 24, ' ', 40);
 }
 
 static void cur_up(char may_move_screen) {
@@ -165,7 +163,7 @@ static void editloop(void) {
             switch (ch) {
                 case CH_DEL:
                     cur_left(0);
-                    emit(SPACE);
+                    emit(' ');
                     cur_left(0);
                     break;
                 case CH_ENTER:
