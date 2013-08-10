@@ -31,14 +31,14 @@ unsigned char color = COLOR_WHITE;
 unsigned char hidden_color;
 
 static void hide_cursor(void) {
-    unsigned int i = cury * 25 + curx;
+    unsigned int i = cury * 40 + curx;
     unsigned char* colptr = (unsigned char*)(0xd800 + i);
     *colptr = hidden_color;
     *(char*)(0x400 + i) ^= 0x80;
 }
 
 static void show_cursor(void) {
-    unsigned int i = cury * 25 + curx;
+    unsigned int i = cury * 40 + curx;
     unsigned char* colptr = (unsigned char*)(0xd800 + i);
     hidden_color = *colptr;
     *colptr = color;
@@ -53,6 +53,54 @@ static void init(void) {
     // startirq();
 
     show_cursor();
+
+    *(char*)0xd018 &= ~2;  // uppercase + gfx
+}
+
+static void cur_up() {
+    if (cury) {
+        --cury;
+    }
+}
+
+static void cur_down() {
+    if (cury != 24) {
+        ++cury;
+    }
+}
+
+static void cur_left() {
+    if (curx) {
+        --curx;
+    }
+}
+
+static void cur_right() {
+    if (curx != 39) {
+        ++curx;
+    }
+}
+
+static void emit_char(unsigned char ch) {
+    unsigned int i = cury * 40 + curx;
+    /* calculate screencode */
+    if (ch < 0x20) {
+        ch += 0x80;
+    } else if (ch < 0x40) {
+    } else if (ch < 0x60) {
+        ch += 0xc0;
+    } else if (ch < 0x80) {
+        ch += 0xe0;
+    } else if (ch < 0xa0) {
+        ch += 0x40;
+    } else if (ch < 0xc0) {
+        ch += 0xc0;
+    } else if (ch != 0xff) {
+        ch += 0x80;
+    }
+    *(unsigned char*)(0xd800 + i) = color;
+    *(char*)(0x400 + i) = ch;
+    cur_right();
 }
 
 static void editloop(void) {
@@ -60,13 +108,25 @@ static void editloop(void) {
         clock_t now = clock();
         while (now == clock());
         if (kbhit()) {
-            switch (cgetc()) {
+            unsigned char ch = cgetc();
+            hide_cursor();
+            switch (ch) {
                 case CH_CURS_RIGHT:
-                    hide_cursor();
-                    ++curx;
-                    show_cursor();
+                    cur_right();
                     break;
+                case CH_CURS_DOWN:
+                    cur_down();
+                    break;
+                case CH_CURS_UP:
+                    cur_up();
+                    break;
+                case CH_CURS_LEFT:
+                    cur_left();
+                    break;
+                default:
+                    emit_char(ch);
             }
+            show_cursor();
         }
     }
 }
