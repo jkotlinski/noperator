@@ -57,37 +57,53 @@ static void init(void) {
     *(char*)0xd018 &= ~2;  // uppercase + gfx
 }
 
-static void cur_up() {
-    if (cury) {
-        --cury;
-    }
-}
-
-static void cur_down() {
-    if (cury != 24) {
-        ++cury;
-    }
-}
-
-static void cur_left() {
-    if (curx) {
-        --curx;
-    }
-}
+// -----
 
 static void screen_left() {
-    char* ptr;
-    for (ptr = (char*)0x400; ptr < (char*)(0x400 + 40 * 25); ptr += 40) {
-        memmove(ptr, ptr + 1, 39);
-        memmove(ptr + 0xd400, ptr + 0xd401, 39);
-        ptr[39] = SPACE;
-    }
+    unsigned char* ptr;
+    memmove((char*)0x400, (char*)0x401, 40 * 25 - 1);
+    memmove((char*)0xd800, (char*)0xd801, 40 * 25 - 1);
+    for (ptr = (char*)0x400 + 39; ptr < (char*)0x400 + 39 + 40 * 25; ptr += 40)
+        *ptr = SPACE;
 }
 
-static void cur_right() {
-    if (curx != 39) {
+static void screen_right() {
+    unsigned char* ptr;
+    memmove((char*)0x401, (char*)0x400, 40 * 25 - 1);
+    memmove((char*)0xd801, (char*)0xd800, 40 * 25 - 1);
+    for (ptr = (char*)0x400; ptr < (char*)0x400 + 40 * 25; ptr += 40)
+        *ptr = SPACE;
+}
+
+static void screen_down() {}
+static void screen_up() {}
+
+static void cur_up(char may_move_screen) {
+    if (cury) {
+        --cury;
+    } else if (may_move_screen)
+        screen_down();
+}
+
+static void cur_down(char may_move_screen) {
+    if (cury != 24) {
+        ++cury;
+    } else if (may_move_screen)
+        screen_up();
+}
+
+static void cur_left(char may_move_screen) {
+    if (curx)
+        --curx;
+    else if (may_move_screen)
+        screen_right();
+}
+
+static void cur_right(char may_move_screen) {
+    if (curx != 39)
         ++curx;
-    }
+    else if (may_move_screen)
+        screen_left();
 }
 
 unsigned char reverse;
@@ -112,7 +128,7 @@ static void emit_char(unsigned char ch) {
     }
     *(unsigned char*)(0xd800 + i) = color;
     *(char*)(0x400 + i) = ch;
-    cur_right();
+    cur_right(0);
 }
 
 static void switch_color(unsigned char col) {
@@ -121,6 +137,9 @@ static void switch_color(unsigned char col) {
 
 static void editloop(void) {
     while(1) {
+        static unsigned char first_keypress;
+        static unsigned char ticks_since_last_key;
+
         clock_t now = clock();
         while (now == clock());
         if (kbhit()) {
@@ -128,25 +147,25 @@ static void editloop(void) {
             hide_cursor();
             switch (ch) {
                 case CH_DEL:
-                    cur_left();
+                    cur_left(0);
                     emit_char(SPACE);
-                    cur_left();
+                    cur_left(0);
                     break;
                 case CH_ENTER:
                     curx = 0;
-                    cur_down();
+                    cur_down(0);
                     break;
                 case CH_CURS_RIGHT:
-                    cur_right();
+                    cur_right(first_keypress);
                     break;
                 case CH_CURS_DOWN:
-                    cur_down();
+                    cur_down(first_keypress);
                     break;
                 case CH_CURS_UP:
-                    cur_up();
+                    cur_up(first_keypress);
                     break;
                 case CH_CURS_LEFT:
-                    cur_left();
+                    cur_left(first_keypress);
                     break;
                 case 0x12: reverse = 0x80u; break;
                 case 0x92: reverse = 0; break;
@@ -172,6 +191,10 @@ static void editloop(void) {
                     emit_char(ch);
             }
             show_cursor();
+            first_keypress = 0;
+            ticks_since_last_key = 0;
+        } else if (!first_keypress && ++ticks_since_last_key == 20) {
+            first_keypress = 1;
         }
     }
 }
