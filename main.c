@@ -117,9 +117,8 @@ static void cur_right(char may_move_screen) {
 
 unsigned char reverse;
 
-static void emit_char(unsigned char ch) {
+static void emit(unsigned char ch) {
     unsigned int i = cury * 40 + curx;
-    ch ^= reverse;
     /* calculate screencode */
     if (ch < 0x20) {
         ch ^= 0x80;
@@ -135,14 +134,13 @@ static void emit_char(unsigned char ch) {
     } else if (ch != 0xff) {
         ch ^= 0x80;
     }
+    ch ^= reverse;
     *(unsigned char*)(0xd800 + i) = color;
     *(char*)(0x400 + i) = ch;
     cur_right(0);
 }
 
-static void switch_color(unsigned char col) {
-    color = col;
-}
+#define switch_color(col) color = col;
 
 static void editloop(void) {
     while(1) {
@@ -157,25 +155,17 @@ static void editloop(void) {
             switch (ch) {
                 case CH_DEL:
                     cur_left(0);
-                    emit_char(SPACE);
+                    emit(SPACE);
                     cur_left(0);
                     break;
                 case CH_ENTER:
                     curx = 0;
                     cur_down(0);
                     break;
-                case CH_CURS_RIGHT:
-                    cur_right(first_keypress);
-                    break;
-                case CH_CURS_DOWN:
-                    cur_down(first_keypress);
-                    break;
-                case CH_CURS_UP:
-                    cur_up(first_keypress);
-                    break;
-                case CH_CURS_LEFT:
-                    cur_left(first_keypress);
-                    break;
+                case CH_CURS_RIGHT: cur_right(first_keypress); break;
+                case CH_CURS_DOWN: cur_down(first_keypress); break;
+                case CH_CURS_UP: cur_up(first_keypress); break;
+                case CH_CURS_LEFT: cur_left(first_keypress); break;
                 case 0x12: reverse = 0x80u; break;
                 case 0x92: reverse = 0; break;
 
@@ -196,8 +186,12 @@ static void editloop(void) {
                 case 0x9c: switch_color(COLOR_PURPLE); break;
                 case 0x9e: switch_color(COLOR_YELLOW); break;
                 case 0x9f: switch_color(COLOR_CYAN); break;
-                default:
-                    emit_char(ch);
+                case 0x80 | ' ':
+                   reverse ^= 0x80;
+                   emit(' ');
+                   reverse ^= 0x80;
+                   break;
+                default: emit(ch);
             }
             show_cursor();
             first_keypress = 0;
