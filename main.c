@@ -142,14 +142,24 @@ static void emit(unsigned char ch) {
 
 #define switch_color(col) color = col;
 
+extern unsigned char _RAM_LAST__;  /* Defined by linker. */
+static char* key_out = &_RAM_LAST__ + 1;
+
+static void store_char(char ch) {
+    *key_out++ = ch;
+    /* running out of RAM warning */
+    if (key_out == (char*)0xcf00) *(char*)0xd020 = COLOR_YELLOW;
+}
+
 static void editloop(void) {
-    while(1) {
+    while (key_out < (char*)0xd000) {
         static unsigned char first_keypress;
         static unsigned char ticks_since_last_key;
 
         clock_t now = clock();
         while (now == clock());
         if (kbhit()) {
+            char do_store = 1;
             unsigned char ch = cgetc();
             hide_cursor();
             switch (ch) {
@@ -194,6 +204,8 @@ static void editloop(void) {
                 default: emit(ch);
             }
             show_cursor();
+            if (do_store)
+                store_char(ch);
             first_keypress = 0;
             ticks_since_last_key = 0;
         } else if (!first_keypress && ++ticks_since_last_key == 20) {
