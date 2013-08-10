@@ -75,6 +75,15 @@ static void cur_left() {
     }
 }
 
+static void screen_left() {
+    char* ptr;
+    for (ptr = (char*)0x400; ptr < (char*)(0x400 + 40 * 25); ptr += 40) {
+        memmove(ptr, ptr + 1, 39);
+        memmove(ptr + 0xd400, ptr + 0xd401, 39);
+        ptr[39] = SPACE;
+    }
+}
+
 static void cur_right() {
     if (curx != 39) {
         ++curx;
