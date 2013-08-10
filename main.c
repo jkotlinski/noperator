@@ -75,8 +75,17 @@ static void screen_right() {
         *ptr = SPACE;
 }
 
-static void screen_down() {}
-static void screen_up() {}
+static void screen_down() {
+    memmove((char*)0x400 + 40, (char*)0x400, 40 * 25 - 40);
+    memmove((char*)0xd800 + 40, (char*)0xd800, 40 * 25 - 40);
+    memset((char*)0x400, SPACE, 40);
+}
+
+static void screen_up() {
+    memmove((char*)0x400, (char*)0x400 + 40, 40 * 25 - 40);
+    memmove((char*)0xd800, (char*)0xd800 + 40, 40 * 25 - 40);
+    memset((char*)0x400 + 40 * 24, SPACE, 40);
+}
 
 static void cur_up(char may_move_screen) {
     if (cury) {
