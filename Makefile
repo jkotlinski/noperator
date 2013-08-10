@@ -33,7 +33,7 @@ all:   	nop
 	@echo $<
 	@$(AS) $(basename $<).s
 
-OBJS = main.o
+OBJS = main.o irq.o
 
 -include $(OBJS:%.o=$(DEPDIR)/%.u)
 

@@ -18,8 +18,60 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
-#include <stdio.h>
+#include <string.h>
+#include <c64.h>
+#include <conio.h>
+#include <time.h>
 
-void main() {
-    puts("hello");
+#define SPACE 32
+
+char curx;
+char cury;
+unsigned char color = COLOR_WHITE;
+unsigned char hidden_color;
+
+static void hide_cursor(void) {
+    unsigned int i = cury * 25 + curx;
+    unsigned char* colptr = (unsigned char*)(0xd800 + i);
+    *colptr = hidden_color;
+    *(char*)(0x400 + i) ^= 0x80;
+}
+
+static void show_cursor(void) {
+    unsigned int i = cury * 25 + curx;
+    unsigned char* colptr = (unsigned char*)(0xd800 + i);
+    hidden_color = *colptr;
+    *colptr = color;
+    *(char*)(0x400 + i) ^= 0x80;
+}
+
+void __fastcall__ startirq(void);
+static void init(void) {
+    *(int*)0xd020 = 0;
+    memset((char*)0x400, SPACE, 40 * 25);
+
+    // startirq();
+
+    show_cursor();
+}
+
+static void editloop(void) {
+    while(1) {
+        clock_t now = clock();
+        while (now == clock());
+        if (kbhit()) {
+            switch (cgetc()) {
+                case CH_CURS_RIGHT:
+                    hide_cursor();
+                    ++curx;
+                    show_cursor();
+                    break;
+            }
+        }
+    }
+}
+
+void main(void) {
+    init();
+    editloop();
 }
