@@ -81,11 +81,14 @@ static void cur_right() {
     }
 }
 
+unsigned char reverse;
+
 static void emit_char(unsigned char ch) {
     unsigned int i = cury * 40 + curx;
+    ch ^= reverse;
     /* calculate screencode */
     if (ch < 0x20) {
-        ch += 0x80;
+        ch ^= 0x80;
     } else if (ch < 0x40) {
     } else if (ch < 0x60) {
         ch += 0xc0;
@@ -96,11 +99,15 @@ static void emit_char(unsigned char ch) {
     } else if (ch < 0xc0) {
         ch += 0xc0;
     } else if (ch != 0xff) {
-        ch += 0x80;
+        ch ^= 0x80;
     }
     *(unsigned char*)(0xd800 + i) = color;
     *(char*)(0x400 + i) = ch;
     cur_right();
+}
+
+static void switch_color(unsigned char col) {
+    color = col;
 }
 
 static void editloop(void) {
@@ -111,6 +118,15 @@ static void editloop(void) {
             unsigned char ch = cgetc();
             hide_cursor();
             switch (ch) {
+                case CH_DEL:
+                    cur_left();
+                    emit_char(SPACE);
+                    cur_left();
+                    break;
+                case CH_ENTER:
+                    curx = 0;
+                    cur_down();
+                    break;
                 case CH_CURS_RIGHT:
                     cur_right();
                     break;
@@ -123,6 +139,26 @@ static void editloop(void) {
                 case CH_CURS_LEFT:
                     cur_left();
                     break;
+                case 0x12: reverse = 0x80u; break;
+                case 0x92: reverse = 0; break;
+
+                // Colors.
+                case 0x05: switch_color(COLOR_WHITE); break;
+                case 0x1c: switch_color(COLOR_RED); break;
+                case 0x1e: switch_color(COLOR_GREEN); break;
+                case 0x1f: switch_color(COLOR_BLUE); break;
+                case 0x81: switch_color(COLOR_ORANGE); break;
+                case 0x90: switch_color(COLOR_BLACK); break;
+                case 0x95: switch_color(COLOR_BROWN); break;
+                case 0x96: switch_color(COLOR_LIGHTRED); break;
+                case 0x97: switch_color(COLOR_GRAY1); break;
+                case 0x98: switch_color(COLOR_GRAY2); break;
+                case 0x99: switch_color(COLOR_LIGHTGREEN); break;
+                case 0x9a: switch_color(COLOR_LIGHTBLUE); break;
+                case 0x9b: switch_color(COLOR_GRAY3); break;
+                case 0x9c: switch_color(COLOR_PURPLE); break;
+                case 0x9e: switch_color(COLOR_YELLOW); break;
+                case 0x9f: switch_color(COLOR_CYAN); break;
                 default:
                     emit_char(ch);
             }
