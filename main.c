@@ -448,11 +448,10 @@ static void editloop(void) {
 }
 
 void loader_test() {
-    loader_open("f");
+    loader_open("1234");
     loader_getc();  /* skip address */
-    loader_getc();
-    hide_cursor();
     playback_mode = 1;
+    hide_cursor();
     while (1) {
         int ch = loader_getc();
         if (ch == -1) break;
