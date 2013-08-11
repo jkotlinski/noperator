@@ -43,16 +43,21 @@ static void show_cursor(void) {
     *(char*)(0x400 + i) ^= 0x80;
 }
 
+static void reset_screen() {
+    curx = 0;
+    cury = 0;
+    *(char*)0xd020 = 0;
+    *(char*)0xd021 = 0;
+    *(char*)0xd018 &= ~2;  // uppercase + gfx
+    memset((char*)0x400, ' ', 40 * 25);
+    color = COLOR_WHITE;
+}
+
 void __fastcall__ startirq(void);
 static void init(void) {
-    *(int*)0xd020 = 0;
-    memset((char*)0x400, ' ', 40 * 25);
-
-    // startirq();
-
+    reset_screen();
     show_cursor();
-
-    *(char*)0xd018 &= ~2;  // uppercase + gfx
+    // startirq();
 }
 
 // -----
@@ -85,32 +90,44 @@ static void screen_up() {
     memset((char*)0x400 + 40 * 24, ' ', 40);
 }
 
-static void cur_up(char may_move_screen) {
+static char cur_up(char may_move_screen) {
     if (cury) {
         --cury;
     } else if (may_move_screen)
         screen_down();
+    else
+        return 0;
+    return 1;
 }
 
-static void cur_down(char may_move_screen) {
+static char cur_down(char may_move_screen) {
     if (cury != 24) {
         ++cury;
     } else if (may_move_screen)
         screen_up();
+    else
+        return 0;
+    return 1;
 }
 
-static void cur_left(char may_move_screen) {
+static char cur_left(char may_move_screen) {
     if (curx)
         --curx;
     else if (may_move_screen)
         screen_right();
+    else
+        return 0;
+    return 1;
 }
 
-static void cur_right(char may_move_screen) {
+static char cur_right(char may_move_screen) {
     if (curx != 39)
         ++curx;
     else if (may_move_screen)
         screen_left();
+    else
+        return 0;
+    return 1;
 }
 
 unsigned char reverse;
@@ -149,61 +166,81 @@ static void store_char(char ch) {
     if (key_out == (char*)0xcf00) *(char*)0xd020 = COLOR_YELLOW;
 }
 
+static void run();
+
+static unsigned char first_keypress;
+
+/* returns 1 if ch should be stored in stream */
+unsigned char handle(unsigned char ch) {
+    switch (ch) {
+        case 3: run(); return 0;  /* RUN */
+        case 0x83: return 0;  /* STOP */
+        case 0x13: break;  /* HOME */
+        case 0x93: break;  /* CLR */
+        case CH_DEL:
+                   cur_left(0);
+                   emit(' ');
+                   cur_left(0);
+                   break;
+        case CH_ENTER:
+                   curx = 0;
+                   cur_down(0);
+                   break;
+        case CH_CURS_RIGHT: return cur_right(first_keypress);
+        case CH_CURS_DOWN: return cur_down(first_keypress);
+        case CH_CURS_UP: return cur_up(first_keypress);
+        case CH_CURS_LEFT: return cur_left(first_keypress);
+        case 0x12: reverse = 0x80u; break;
+        case 0x92: reverse = 0; break;
+
+                   // Colors.
+        case 0x05: switch_color(COLOR_WHITE); break;
+        case 0x1c: switch_color(COLOR_RED); break;
+        case 0x1e: switch_color(COLOR_GREEN); break;
+        case 0x1f: switch_color(COLOR_BLUE); break;
+        case 0x81: switch_color(COLOR_ORANGE); break;
+        case 0x90: switch_color(COLOR_BLACK); break;
+        case 0x95: switch_color(COLOR_BROWN); break;
+        case 0x96: switch_color(COLOR_LIGHTRED); break;
+        case 0x97: switch_color(COLOR_GRAY1); break;
+        case 0x98: switch_color(COLOR_GRAY2); break;
+        case 0x99: switch_color(COLOR_LIGHTGREEN); break;
+        case 0x9a: switch_color(COLOR_LIGHTBLUE); break;
+        case 0x9b: switch_color(COLOR_GRAY3); break;
+        case 0x9c: switch_color(COLOR_PURPLE); break;
+        case 0x9e: switch_color(COLOR_YELLOW); break;
+        case 0x9f: switch_color(COLOR_CYAN); break;
+        case 0x80 | ' ':
+                   reverse ^= 0x80;
+                   emit(' ');
+                   reverse ^= 0x80;
+                   break;
+        default: emit(ch);
+    }
+    return 1;
+}
+
+static void run() {
+    char* ptr = &_RAM_LAST__ + 1;
+    reset_screen();
+    first_keypress = 1;
+    while (ptr < key_out) {
+        handle(*ptr++);
+    }
+}
+
 static void editloop(void) {
     while (key_out < (char*)0xd000) {
-        static unsigned char first_keypress;
         static unsigned char ticks_since_last_key;
 
         clock_t now = clock();
         while (now == clock());
         if (kbhit()) {
-            char do_store = 1;
             unsigned char ch = cgetc();
             hide_cursor();
-            switch (ch) {
-                case CH_DEL:
-                    cur_left(0);
-                    emit(' ');
-                    cur_left(0);
-                    break;
-                case CH_ENTER:
-                    curx = 0;
-                    cur_down(0);
-                    break;
-                case CH_CURS_RIGHT: cur_right(first_keypress); break;
-                case CH_CURS_DOWN: cur_down(first_keypress); break;
-                case CH_CURS_UP: cur_up(first_keypress); break;
-                case CH_CURS_LEFT: cur_left(first_keypress); break;
-                case 0x12: reverse = 0x80u; break;
-                case 0x92: reverse = 0; break;
-
-                // Colors.
-                case 0x05: switch_color(COLOR_WHITE); break;
-                case 0x1c: switch_color(COLOR_RED); break;
-                case 0x1e: switch_color(COLOR_GREEN); break;
-                case 0x1f: switch_color(COLOR_BLUE); break;
-                case 0x81: switch_color(COLOR_ORANGE); break;
-                case 0x90: switch_color(COLOR_BLACK); break;
-                case 0x95: switch_color(COLOR_BROWN); break;
-                case 0x96: switch_color(COLOR_LIGHTRED); break;
-                case 0x97: switch_color(COLOR_GRAY1); break;
-                case 0x98: switch_color(COLOR_GRAY2); break;
-                case 0x99: switch_color(COLOR_LIGHTGREEN); break;
-                case 0x9a: switch_color(COLOR_LIGHTBLUE); break;
-                case 0x9b: switch_color(COLOR_GRAY3); break;
-                case 0x9c: switch_color(COLOR_PURPLE); break;
-                case 0x9e: switch_color(COLOR_YELLOW); break;
-                case 0x9f: switch_color(COLOR_CYAN); break;
-                case 0x80 | ' ':
-                   reverse ^= 0x80;
-                   emit(' ');
-                   reverse ^= 0x80;
-                   break;
-                default: emit(ch);
-            }
-            show_cursor();
-            if (do_store)
+            if (handle(ch))
                 store_char(ch);
+            show_cursor();
             first_keypress = 0;
             ticks_since_last_key = 0;
         } else if (!first_keypress && ++ticks_since_last_key == 20) {
