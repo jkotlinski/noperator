@@ -23,6 +23,8 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 #include <time.h>
 
+#define DISPLAY_BASE ((char*)0x400)
+
 char curx;
 char cury;
 unsigned char color = COLOR_WHITE;
@@ -232,6 +234,78 @@ static void load() {
     }
 }
 
+/* (CLIP_X1, CLIP_Y1) = top left.
+ * (CLIP_X2, CLIP_Y2) = bottom right.
+ */
+static char CLIP_X1 = 0xff;
+static char CLIP_X2;
+static char CLIP_Y1;
+static char CLIP_Y2;
+
+static void invert_copy_mark() {
+    const unsigned char x2 = ((CLIP_X1 < CLIP_X2) ? CLIP_X2 : CLIP_X1) + 1;
+    const unsigned char y2 = ((CLIP_Y1 < CLIP_Y2) ? CLIP_Y2 : CLIP_Y1) + 1;
+    unsigned char y1 = (CLIP_Y1 < CLIP_Y2) ? CLIP_Y1 : CLIP_Y2;
+    while (y1 < y2) {
+        unsigned char x1 = (CLIP_X1 < CLIP_X2) ? CLIP_X1 : CLIP_X2;
+        unsigned char* ptr = DISPLAY_BASE + y1 * 40 + x1;
+        x1 = x2 - x1;
+        while (x1--) {
+            *ptr ^= 0x80;
+            ++ptr;
+        }
+        ++y1;
+    }
+}
+
+void copy_loop() {
+    invert_copy_mark();
+    while (1) {
+        switch (cgetc()) {
+            case CH_CURS_DOWN:
+                if (CLIP_Y2 < 24) {
+                    invert_copy_mark();
+                    ++CLIP_Y2;
+                    invert_copy_mark();
+                }
+                break;
+            case CH_CURS_UP:
+                if (CLIP_Y2) {
+                    invert_copy_mark();
+                    --CLIP_Y2;
+                    invert_copy_mark();
+                }
+                break;
+            case CH_CURS_RIGHT:
+                if (CLIP_X2 < 39) {
+                    invert_copy_mark();
+                    ++CLIP_X2;
+                    invert_copy_mark();
+                }
+                break;
+            case CH_CURS_LEFT:
+                if (CLIP_X2) {
+                    invert_copy_mark();
+                    --CLIP_X2;
+                    invert_copy_mark();
+                }
+                break;
+            case CH_F5:
+                invert_copy_mark();
+                return;
+        }
+    }
+}
+
+void copy() {
+    CLIP_X1 = curx;
+    CLIP_X2 = curx;
+    CLIP_Y1 = cury;
+    CLIP_Y2 = cury;
+
+    copy_loop();
+}
+
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
     switch (ch) {
@@ -239,7 +313,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case CH_F2: save(); run(); return 0;
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
-        case CH_F5: break;
+        case CH_F5: copy(); return 0;
         case CH_F6: break;
         case CH_F7: break;
         case CH_F8: break;
