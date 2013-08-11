@@ -15,6 +15,7 @@
 
 .export initloader
 .export getbyte
+.export openfile
 
 .segment "CODE"
 

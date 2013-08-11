@@ -22,15 +22,24 @@
 
 .export _loader_init
 .export _loader_getc
-;.export _loader_open
+.export _loader_open
 
 .import initloader
 .import getbyte
+.import openfile
 
 .segment	"CODE"
 
 _loader_init:
     jmp initloader
+
+_loader_open:
+    pha
+    txa
+    tay
+    pla
+    tax
+    jsr openfile
 
 _loader_getc:
     jsr getbyte

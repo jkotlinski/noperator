@@ -174,7 +174,7 @@ static void store_char(char ch) {
 
 static void run();
 
-char gets(char* buf) {
+char mygets(char* buf) {
     unsigned char i = 0;
     while (1) {
         const char ch = cgetc();
@@ -203,7 +203,7 @@ static void save() {
     clrscr();
     textcolor(COLOR_WHITE);
     cputs("save> ");
-    if (!gets(buf)) return;
+    if (!mygets(buf)) return;
     cputs(cbm_save(buf, 8, KEYS_START, size) ? " err" : " ok");
     cgetc();
 }
@@ -227,7 +227,7 @@ static void load() {
     textcolor(COLOR_WHITE);
     ls();
     cputs("load> ");
-    if (!gets(buf)) return;
+    if (!mygets(buf)) return;
     read = cbm_load(buf, 8, KEYS_START);
     if (read) {
         key_out = KEYS_START + read;
@@ -447,7 +447,20 @@ static void editloop(void) {
     }
 }
 
+void test() {
+    int ch;
+    loader_open("f");
+    loader_getc();
+    loader_getc();
+    while (1) {
+        ch = loader_getc();
+        if (ch == -1) break;
+        handle(ch, 1);
+    }
+}
+
 void main(void) {
     init();
+    test();
     editloop();
 }
