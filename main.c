@@ -168,10 +168,8 @@ static void store_char(char ch) {
 
 static void run();
 
-static unsigned char first_keypress;
-
 /* returns 1 if ch should be stored in stream */
-unsigned char handle(unsigned char ch) {
+unsigned char handle(unsigned char ch, char first_keypress) {
     switch (ch) {
         case 3: run(); return 0;  /* RUN */
         case 0x83: return 0;  /* STOP */
@@ -223,27 +221,26 @@ unsigned char handle(unsigned char ch) {
 static void run() {
     char* ptr = &_RAM_LAST__ + 1;
     reset_screen();
-    first_keypress = 1;
     while (ptr < key_out) {
-        handle(*ptr++);
+        handle(*ptr++, 1);
     }
 }
 
 static void editloop(void) {
+    char first_keypress = 1;
+    unsigned char ticks_since_last_key;
     while (key_out < (char*)0xd000) {
-        static unsigned char ticks_since_last_key;
-
         clock_t now = clock();
         while (now == clock());
         if (kbhit()) {
             unsigned char ch = cgetc();
             hide_cursor();
-            if (handle(ch))
+            if (handle(ch, first_keypress))
                 store_char(ch);
             show_cursor();
             first_keypress = 0;
             ticks_since_last_key = 0;
-        } else if (!first_keypress && ++ticks_since_last_key == 20) {
+        } else if (!first_keypress && ++ticks_since_last_key == 19) {
             first_keypress = 1;
         }
     }
