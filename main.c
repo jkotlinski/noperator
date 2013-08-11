@@ -447,20 +447,23 @@ static void editloop(void) {
     }
 }
 
-void test() {
-    int ch;
+void loader_test() {
     loader_open("f");
+    loader_getc();  /* skip address */
     loader_getc();
-    loader_getc();
+    hide_cursor();
+    playback_mode = 1;
     while (1) {
-        ch = loader_getc();
+        int ch = loader_getc();
         if (ch == -1) break;
         handle(ch, 1);
     }
+    playback_mode = 0;
+    show_cursor();
 }
 
 void main(void) {
     init();
-    test();
+    loader_test();
     editloop();
 }
