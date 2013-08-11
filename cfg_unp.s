@@ -23,9 +23,9 @@
 .define depackbuffer     $0500         ;156 bytes for EXOMIZER tables, 31 for
                                 ;PUCRUNCH.
 
-.define zpbase           $74           ;Zeropage base address. Loader needs 2
+.define zpbase           tmp1           ;Zeropage base address. Loader needs 2
                                 ;addresses with unpacked, 3 with PUCRUNCH
                                 ;and 8 with EXOMIZER loading.
 
-.define zpbase2          $7c           ;Additional 4 zeropage addresses for shortening
+.define zpbase2          tmp3           ;Additional 4 zeropage addresses for shortening
                                 ;the loader code (optional)
