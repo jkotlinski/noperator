@@ -261,6 +261,7 @@ static void invert_copy_mark() {
 char copy_mode;
 
 char clipboard[40 * 25];
+char clipboard_color[40 * 25];
 
 void handle_copy(char ch) {
     switch (ch) {
@@ -297,7 +298,20 @@ void handle_copy(char ch) {
                 char tmp = *(char*)0xd020;
                 *(char*)0xd020 = 5;
                 invert_copy_mark();
+                // Copies screen to clipboard.
                 memcpy(clipboard, DISPLAY_BASE, 40 * 25);
+                memcpy(clipboard_color, (char*)0xd800, 40 * 25);
+                // Orders coordinates.
+                if (CLIP_X1 > CLIP_X2) {
+                    const char tmp = CLIP_X1;
+                    CLIP_X1 = CLIP_X2;
+                    CLIP_X2 = tmp;
+                }
+                if (CLIP_Y1 > CLIP_Y2) {
+                    const char tmp = CLIP_Y1;
+                    CLIP_Y1 = CLIP_Y2;
+                    CLIP_Y2 = tmp;
+                }
                 copy_mode = 0;
                 *(char*)0xd020 = tmp;
             }
@@ -315,6 +329,30 @@ static void start_copy() {
     copy_mode = 1;
 }
 
+static void paste() {
+    if (CLIP_X1 == 0xff) return;
+
+    if (CLIP_X1 == CLIP_X2 && CLIP_Y1 == CLIP_Y2) {
+        // Copies entire screen.
+        memcpy(DISPLAY_BASE, clipboard, 40 * 25);
+        memcpy((char*)0xd800, clipboard_color, 40 * 25);
+    } else {
+        // Pastes region.
+        char y;
+        for (y = CLIP_Y1; y <= CLIP_Y2; ++y) {
+            const char dst_y = y + cury - CLIP_Y1;
+            char x;
+            if (dst_y >= 25) break;
+            for (x = CLIP_X1; x <= CLIP_X2; ++x) {
+                const char dst_x = x + curx - CLIP_X1;
+                if (dst_x >= 40) break;
+                DISPLAY_BASE[dst_y * 40 + dst_x] = clipboard[y * 40 + x];
+                ((char*)0xd800)[dst_y * 40 + dst_x] = clipboard_color[y * 40 + x];
+            }
+        }
+    }
+}
+
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
     if (copy_mode) {
@@ -328,7 +366,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
         case CH_F5: start_copy(); break;
-        case CH_F6: break;
+        case CH_F6: paste(); break;
         case CH_F7: break;
         case CH_F8: break;
         case 3: run(); return 0;  /* RUN */
