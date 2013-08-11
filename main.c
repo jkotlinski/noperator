@@ -242,19 +242,23 @@ static char CLIP_X2;
 static char CLIP_Y1;
 static char CLIP_Y2;
 
+char playback_mode;  // if set, some UI operations will be disabled
 static void invert_copy_mark() {
-    const unsigned char x2 = ((CLIP_X1 < CLIP_X2) ? CLIP_X2 : CLIP_X1) + 1;
-    const unsigned char y2 = ((CLIP_Y1 < CLIP_Y2) ? CLIP_Y2 : CLIP_Y1) + 1;
-    unsigned char y1 = (CLIP_Y1 < CLIP_Y2) ? CLIP_Y1 : CLIP_Y2;
-    while (y1 < y2) {
-        unsigned char x1 = (CLIP_X1 < CLIP_X2) ? CLIP_X1 : CLIP_X2;
-        unsigned char* ptr = DISPLAY_BASE + y1 * 40 + x1;
-        x1 = x2 - x1;
-        while (x1--) {
-            *ptr ^= 0x80;
-            ++ptr;
+    if (playback_mode) return;
+    {
+        const unsigned char x2 = ((CLIP_X1 < CLIP_X2) ? CLIP_X2 : CLIP_X1) + 1;
+        const unsigned char y2 = ((CLIP_Y1 < CLIP_Y2) ? CLIP_Y2 : CLIP_Y1) + 1;
+        unsigned char y1 = (CLIP_Y1 < CLIP_Y2) ? CLIP_Y1 : CLIP_Y2;
+        while (y1 < y2) {
+            unsigned char x1 = (CLIP_X1 < CLIP_X2) ? CLIP_X1 : CLIP_X2;
+            unsigned char* ptr = DISPLAY_BASE + y1 * 40 + x1;
+            x1 = x2 - x1;
+            while (x1--) {
+                *ptr ^= 0x80;
+                ++ptr;
+            }
+            ++y1;
         }
-        ++y1;
     }
 }
 
@@ -418,10 +422,12 @@ unsigned char handle(unsigned char ch, char first_keypress) {
 
 static void run() {
     char* ptr = KEYS_START;
+    playback_mode = 1;
     reset_screen();
     while (ptr < key_out) {
         handle(*ptr++, 1);
     }
+    playback_mode = 0;
 }
 
 static void editloop(void) {
