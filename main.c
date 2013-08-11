@@ -169,20 +169,14 @@ static void store_char(char ch) {
 
 static void run();
 
-static void save() {
-    char buf[20];
+char gets(char* buf) {
     unsigned char i = 0;
-    clrscr();
-    textcolor(COLOR_WHITE);
-    cputs("save> ");
     while (1) {
-        char ch;
-        if (!kbhit()) continue;
-        ch = cgetc();
-        if (ch == CH_ENTER) {
-            break;
-        }
+        const char ch = cgetc();
         switch (ch) {
+            case CH_ENTER:
+                buf[i] = '\0';
+                return i;
             case CH_DEL:
                 if (i) {
                     --i;
@@ -196,24 +190,29 @@ static void save() {
                 cputc(ch);
         }
     }
-    if (i) {
-        buf[i] = '\0';
-        if (!cbm_open(1, 8, 1, buf)) {
-            unsigned int size = key_out - KEYS_START;
-            cputc(' ');
-            cputs((size == cbm_write(1, KEYS_START, size))
-                    ? "ok"
-                    : "err");
-        }
-        cbm_close(1);
-        while (!kbhit()) {}
-        cgetc();
+}
+
+static void save() {
+    char buf[20];
+    clrscr();
+    textcolor(COLOR_WHITE);
+    cputs("save> ");
+    if (!gets(buf)) return;
+    if (!cbm_open(1, 8, 1, buf)) {
+        unsigned int size = key_out - KEYS_START;
+        cputc(' ');
+        cputs((size == cbm_write(1, KEYS_START, size))
+                ? "ok"
+                : "err");
     }
+    cbm_close(1);
+    cgetc();
 }
 
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
     switch (ch) {
+        // case CH_F1: load(); run(); return 0;
         case CH_F2: save(); run(); return 0;
         case 3: run(); return 0;  /* RUN */
         case 0x83: return 0;  /* STOP */
