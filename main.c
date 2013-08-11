@@ -158,7 +158,8 @@ static void emit(unsigned char ch) {
 #define switch_color(col) color = col;
 
 extern unsigned char _RAM_LAST__;  /* Defined by linker. */
-static char* key_out = &_RAM_LAST__ + 1;
+#define KEYS_START (&_RAM_LAST__ + 1)
+static char* key_out = KEYS_START;
 
 static void store_char(char ch) {
     *key_out++ = ch;
@@ -168,9 +169,52 @@ static void store_char(char ch) {
 
 static void run();
 
+static void save() {
+    char buf[20];
+    unsigned char i = 0;
+    clrscr();
+    textcolor(COLOR_WHITE);
+    cputs("save> ");
+    while (1) {
+        char ch;
+        if (!kbhit()) continue;
+        ch = cgetc();
+        if (ch == CH_ENTER) {
+            break;
+        }
+        switch (ch) {
+            case CH_DEL:
+                if (i) {
+                    --i;
+                    gotox(wherex() - 1);
+                    cputc(' ');
+                    gotox(wherex() - 1);
+                }
+                break;
+            default:
+                buf[i++] = ch;
+                cputc(ch);
+        }
+    }
+    if (i) {
+        buf[i] = '\0';
+        if (!cbm_open(1, 8, 1, buf)) {
+            unsigned int size = key_out - KEYS_START;
+            cputc(' ');
+            cputs((size == cbm_write(1, KEYS_START, size))
+                    ? "ok"
+                    : "err");
+        }
+        cbm_close(1);
+        while (!kbhit()) {}
+        cgetc();
+    }
+}
+
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
     switch (ch) {
+        case CH_F2: save(); run(); return 0;
         case 3: run(); return 0;  /* RUN */
         case 0x83: return 0;  /* STOP */
         case 0x13: break;  /* HOME */
@@ -219,7 +263,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
 }
 
 static void run() {
-    char* ptr = &_RAM_LAST__ + 1;
+    char* ptr = KEYS_START;
     reset_screen();
     while (ptr < key_out) {
         handle(*ptr++, 1);
