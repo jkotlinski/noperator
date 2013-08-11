@@ -14,7 +14,6 @@
 .define processor 6502
 
 .export initloader
-.export loadfile
 
 .segment "CODE"
 

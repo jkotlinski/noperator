@@ -23,6 +23,8 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 #include <time.h>
 
+#include "myload.h"
+
 #define DISPLAY_BASE ((char*)0x400)
 
 char curx;
@@ -59,6 +61,7 @@ void __fastcall__ startirq(void);
 static void init(void) {
     reset_screen();
     show_cursor();
+    loader_init();
     // startirq();
 }
 
