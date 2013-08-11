@@ -194,25 +194,48 @@ char gets(char* buf) {
 
 static void save() {
     char buf[20];
+    unsigned int size = key_out - KEYS_START;
     clrscr();
     textcolor(COLOR_WHITE);
     cputs("save> ");
     if (!gets(buf)) return;
-    if (!cbm_open(1, 8, 1, buf)) {
-        unsigned int size = key_out - KEYS_START;
-        cputc(' ');
-        cputs((size == cbm_write(1, KEYS_START, size))
-                ? "ok"
-                : "err");
+    cputs(cbm_save(buf, 8, KEYS_START, size) ? " err" : " ok");
+    cgetc();
+}
+
+static void ls() {
+    struct cbm_dirent direntry;
+    cbm_opendir(1, 8);
+    while (!cbm_readdir(1, &direntry)) {
+        if (direntry.size) {
+            cputs(direntry.name);
+            gotoxy(0, wherey() + 1);
+        }
     }
     cbm_close(1);
-    cgetc();
+}
+
+static void load() {
+    char buf[20];
+    unsigned int read;
+    clrscr();
+    textcolor(COLOR_WHITE);
+    ls();
+    cputs("load> ");
+    if (!gets(buf)) return;
+    read = cbm_load(buf, 8, KEYS_START);
+    if (read) {
+        key_out = KEYS_START + read;
+    } else {
+        cputs(" err");
+        cgetc();
+    }
 }
 
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
     switch (ch) {
-        // case CH_F1: load(); run(); return 0;
+        case CH_F1: load(); run(); return 0;
         case CH_F2: save(); run(); return 0;
         case 3: run(); return 0;  /* RUN */
         case 0x83: return 0;  /* STOP */
