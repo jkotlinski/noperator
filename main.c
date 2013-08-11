@@ -258,62 +258,76 @@ static void invert_copy_mark() {
     }
 }
 
-void copy_loop() {
-    invert_copy_mark();
-    while (1) {
-        switch (cgetc()) {
-            case CH_CURS_DOWN:
-                if (CLIP_Y2 < 24) {
-                    invert_copy_mark();
-                    ++CLIP_Y2;
-                    invert_copy_mark();
-                }
-                break;
-            case CH_CURS_UP:
-                if (CLIP_Y2) {
-                    invert_copy_mark();
-                    --CLIP_Y2;
-                    invert_copy_mark();
-                }
-                break;
-            case CH_CURS_RIGHT:
-                if (CLIP_X2 < 39) {
-                    invert_copy_mark();
-                    ++CLIP_X2;
-                    invert_copy_mark();
-                }
-                break;
-            case CH_CURS_LEFT:
-                if (CLIP_X2) {
-                    invert_copy_mark();
-                    --CLIP_X2;
-                    invert_copy_mark();
-                }
-                break;
-            case CH_F5:
+char copy_mode;
+
+char clipboard[40 * 25];
+
+void handle_copy(char ch) {
+    switch (ch) {
+        case CH_CURS_DOWN:
+            if (CLIP_Y2 < 24) {
                 invert_copy_mark();
-                return;
-        }
+                ++CLIP_Y2;
+                invert_copy_mark();
+            }
+            break;
+        case CH_CURS_UP:
+            if (CLIP_Y2) {
+                invert_copy_mark();
+                --CLIP_Y2;
+                invert_copy_mark();
+            }
+            break;
+        case CH_CURS_RIGHT:
+            if (CLIP_X2 < 39) {
+                invert_copy_mark();
+                ++CLIP_X2;
+                invert_copy_mark();
+            }
+            break;
+        case CH_CURS_LEFT:
+            if (CLIP_X2) {
+                invert_copy_mark();
+                --CLIP_X2;
+                invert_copy_mark();
+            }
+            break;
+        case CH_F5: /* copy done */
+            {
+                char tmp = *(char*)0xd020;
+                *(char*)0xd020 = 5;
+                invert_copy_mark();
+                memcpy(clipboard, DISPLAY_BASE, 40 * 25);
+                copy_mode = 0;
+                *(char*)0xd020 = tmp;
+            }
+            break;
     }
 }
 
-void copy() {
+static void start_copy() {
     CLIP_X1 = curx;
     CLIP_X2 = curx;
     CLIP_Y1 = cury;
     CLIP_Y2 = cury;
 
-    copy_loop();
+    invert_copy_mark();
+    copy_mode = 1;
 }
 
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
+    if (copy_mode) {
+        handle_copy(ch);
+        return 1;
+    }
+
     switch (ch) {
         case CH_F1: load(); run(); return 0;
         case CH_F2: save(); run(); return 0;
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
-        case CH_F5: copy(); return 0;
+        case CH_F5: start_copy(); break;
         case CH_F6: break;
         case CH_F7: break;
         case CH_F8: break;
