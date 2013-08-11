@@ -20,8 +20,24 @@
 
 ; C interface for fastloader
 
-.import initloader
 .export _loader_init
+.export _loader_getc
+;.export _loader_open
+
+.import initloader
+.import getbyte
+
+.segment	"CODE"
 
 _loader_init:
     jmp initloader
+
+_loader_getc:
+    jsr getbyte
+    bcs @error
+    ldx #0
+    rts ; success, read byte to a
+@error:
+	lda #$ff
+    tax
+	rts
