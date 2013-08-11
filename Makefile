@@ -1,5 +1,3 @@
-CC65BASE = /usr/local/lib/cc65
-
 CRT0   	= $(CC65BASE)/lib/c64.o
 CLIB	= $(CC65BASE)/lib/c64.lib
 CC	= cc65 -Or -O --create-dep -Cl -tc64 -T -I $(CC65BASE)/include/ 

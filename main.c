@@ -237,6 +237,12 @@ unsigned char handle(unsigned char ch, char first_keypress) {
     switch (ch) {
         case CH_F1: load(); run(); return 0;
         case CH_F2: save(); run(); return 0;
+        case CH_F3: ++*(char*)0xd020; break;
+        case CH_F4: ++*(char*)0xd021; break;
+        case CH_F5: break;
+        case CH_F6: break;
+        case CH_F7: break;
+        case CH_F8: break;
         case 3: run(); return 0;  /* RUN */
         case 0x83: return 0;  /* STOP */
         case 0x13: break;  /* HOME */
