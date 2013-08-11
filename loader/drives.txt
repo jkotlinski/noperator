@@ -1,0 +1,175 @@
+Drive programming info by Cadaver, Ninja & DocBacardi
+-----------------------------------------------------
+
+1. What section of drivememory to use?
+
+(DocBacardi)
+
+All drives have useable buffers from $0300 to $06ff
+
+(Cadaver)
+
+So it's fine for example to start the fastloader code at $0500 and
+have the sector buffer at $0400 (buffer 1)
+
+
+2. How to read sectors (by jobcodes)
+
+(DocBacardi)
+
+The 'read' jobcode is the same for all drives, only the queue and
+track/sector list differ. I can't remember how it worked on the 1581 and FD.
+But at least for the HD it is special. It has 2 emulation mode job queues at
+the 1541's and 1581's location, but both do not work with native partitions.
+Only the 'native modus' queue works with all partition types:
+
+job | track | sector | buffer
+----+-------+--------+--------
+$20 | $2800 | $2801  | $0300
+$21 | $2802 | $2803  | $0400
+$22 | $2804 | $2805  | $0500
+$23 ...
+
+I think for 1581 and FD the jobs started at $02 and trk/sec at $0b/$0c, but I
+have to check this first.
+
+
+(Cadaver)
+
+The 1581 and CMD FD/HD have a handy "execute job" routine in their ROM, which
+is called in the following way, and will return job result in the accumulator:
+
+(Common for all drives)
+
+  ldx #$01                ;Buffer 1 job
+  lda #$80                ;Job code: read sector
+
+(For 1581)
+
+  jsr $ff54               ;Execute job
+
+(For CMD FD)
+
+  jsr $ff54               ;Execute job
+  lda $03                 ;Check returncode: because of firmware bug it
+                          ;isn't returned in A!!! (Ninja)
+(For CMD HD)
+
+  jsr $ff4e ;Execute job
+
+(For 1541)
+
+1541/1571 need some additional operations, for example handling the
+disk ID in case of disk change. Additionally I like to flash the led :)
+This is what my 1541 job exec code in the loader is currently like,
+it is called with $80 in the accumulator, and X isn't really needed:
+
+  tax
+  lda $1c00               ;Led on
+  ora #$08
+  sta $1c00
+  cli                     ;Allow interrupts & execute command
+  stx $01
+wait:
+  lda $01                 ;Poll for job completion &
+  bmi wait                ;read returncode
+  pha
+  lda id                  ;Handle disk ID change
+  sta iddrv0
+  lda id+1
+  sta iddrv0+1
+  lda $1c00               ;Led off
+  and #$f7
+  sta $1c00
+  pla
+
+On all drives, if return value in accumulator is $02 or greater, an error of
+some kind has occurred. $00 and $01 indicate sector was read OK. Also remember
+to forbid interrupts after sector read if you're doing timing sensitive
+operations (like usual 1-bit data transfer, where the C64 sets the timing)
+
+
+3. Where to find the directory?
+
+(DocBacardi)
+
+1570 and 71 are like the 1541, the dir always starts at 18/1. All other
+drives can have more than one directory, either in a 1581 subpartition or a
+cmd subdirectory. But the dos keeps track of the directory start:
+
+      | track | sector |
+------+-------+--------+
+1541  | #$12  | #$01   |
+1570  |       |        |
+1571  |       |        |
+------+-------+--------+
+1581  | $022B | #$03   |
+------+-------+--------+
+FD    | $54   | $56    |
+------+-------+--------+
+HD    | $2BA7 | $2BA9  |
+------+-------+--------+
+
+
+4. How the serial port ($1800) works on different drives?
+
+(DocBacardi)
+
+The bits are the same, only the location differs:
+
+1541 : $1800
+1570 : $1800
+1571 : $1800
+1581 : $4001
+FD   : $4001
+HD   : $8000
+
+
+5. Where and how to detect the drive
+
+(Cadaver)
+
+I shamelessly ripped some code from DreamLoad to identify drive type, you
+can see it at "drv_detect" label in the drivecode source. Basically this
+involves searching for certain identifying values from the diskdrive ROM.
+
+DreamLoad likes to do drive detection on the C64 side by peeking into drive
+memory with "M-R" commands, but I do it directly on the diskdrive: the
+detection routine is called when the drivecode first starts up, and it patches
+the drivecode to use correct serial port address ($1800 access), zeropage
+tempvariable, directory track/sector location, jobcode execution routine etc.
+
+In my loader, the basic logic of the drivecode, and data transfer between
+C64<->drive stays the same on all drives. DreamLoad does some more advanced
+things, so it actually uploads different code to the diskdrive based on the
+drive type.
+
+
+6. Data transfer methods
+
+(Cadaver)
+
+Because 1581, CMD FD & CMD HD are 2MHz drives, you can't just rely on the
+traditional 2-bit transfer routine (use both CLK & DATA lines for data transfer,
+synchronize only at the beginning of a byte) unless you adjust the delays.
+But there are 2 other methods you can use, that work with whatever drive speed.
+
+1) Use 1-bit transfer. This is what this loader does. Disadvantage is speed.
+
+2) Use ATN line to sync transfers, and CLK & DATA for the data. This is what
+   DreamLoad uses. Downside is that only 1 drive can be connected on the serial
+   bus while doing so.
+
+
+7. Additional info
+
+For further reference, AAY1541 & 1581 by The Dreams
+
+  http://www.the-dreams.de/aay.html
+
+and DreamLoad source code are recommended
+
+  http://www.the-dreams.de/dload23.zip
+
+but source code of this loader should also be enough for fundamental under-
+standing of multidrive IRQ-loader support..

@@ -1,0 +1,8 @@
+Here are some example programs using the loader. Each of them loads a picture
+and shows it. The example diskimage (.D64) has been made with interleave 13,
+which is usually OK for unpacked 1-bit transfer, but not necessarily for on-
+the-fly depacking. Try for example interleave 15 for better loading performance
+while depacking. 2-bit loading should handle default interleave 10 (unpacked)
+or 11 (packed) well.
+
+Example .D81 image is also included for testing.

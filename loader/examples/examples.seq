@@ -1,0 +1,7 @@
+tst_exom.prg EXOMIZER_LOADER
+tst_pucr.prg PUCRUNCH_LOADER
+tst_unp.prg UNPACKED_LOADER
+tst_2bit.prg 2BIT_LOADER
+datafile UNPACKED_PIC
+datafile.puc PUCRUNCHED_PIC
+datafile.exo EXOMIZED_PIC

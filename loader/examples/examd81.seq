@@ -1,0 +1,11 @@
+format loaderexamples,le d81 examples.d81 8
+attach examples.d64 9
+copy @9:"exomizer loader" @8:
+copy @9:"pucrunch loader" @8:
+copy @9:"unpacked loader" @8:
+copy @9:"2bit loader" @8:
+copy @9:"unpacked pic" @8:
+copy @9:"pucrunched pic" @8:
+copy @9:"exomized pic" @8:
+exit
+
