@@ -334,25 +334,19 @@ static void start_copy() {
 }
 
 static void paste() {
+    char y;
     if (CLIP_X1 == 0xff) return;
 
-    if (CLIP_X1 == CLIP_X2 && CLIP_Y1 == CLIP_Y2) {
-        // Copies entire screen.
-        memcpy(DISPLAY_BASE, clipboard, 40 * 25);
-        memcpy((char*)0xd800, clipboard_color, 40 * 25);
-    } else {
-        // Pastes region.
-        char y;
-        for (y = CLIP_Y1; y <= CLIP_Y2; ++y) {
-            const char dst_y = y + cury - CLIP_Y1;
-            char x;
-            if (dst_y >= 25) break;
-            for (x = CLIP_X1; x <= CLIP_X2; ++x) {
-                const char dst_x = x + curx - CLIP_X1;
-                if (dst_x >= 40) break;
-                DISPLAY_BASE[dst_y * 40 + dst_x] = clipboard[y * 40 + x];
-                ((char*)0xd800)[dst_y * 40 + dst_x] = clipboard_color[y * 40 + x];
-            }
+    // Pastes region.
+    for (y = CLIP_Y1; y <= CLIP_Y2; ++y) {
+        const char dst_y = y + cury - CLIP_Y1;
+        char x;
+        if (dst_y >= 25) break;
+        for (x = CLIP_X1; x <= CLIP_X2; ++x) {
+            const char dst_x = x + curx - CLIP_X1;
+            if (dst_x >= 40) break;
+            DISPLAY_BASE[dst_y * 40 + dst_x] = clipboard[y * 40 + x];
+            ((char*)0xd800)[dst_y * 40 + dst_x] = clipboard_color[y * 40 + x];
         }
     }
 }
