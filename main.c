@@ -47,7 +47,12 @@ static void show_cursor(void) {
     *(char*)(0x400 + i) ^= 0x80;
 }
 
-static void reset_screen() {
+unsigned char run_length;
+char prev_ch;
+
+static void reset() {
+    prev_ch = 0;
+    run_length = 0;
     curx = 0;
     cury = 0;
     *(char*)0xd020 = 0;
@@ -59,7 +64,7 @@ static void reset_screen() {
 
 void __fastcall__ startirq(void);
 static void init(void) {
-    reset_screen();
+    reset();
     show_cursor();
     loader_init();
     // startirq();
@@ -166,10 +171,35 @@ extern unsigned char _RAM_LAST__;  /* Defined by linker. */
 #define KEYS_START (&_RAM_LAST__ + 1)
 static char* key_out = KEYS_START;
 
-static void store_char(char ch) {
+static void do_store(char ch) {
     *key_out++ = ch;
     /* running out of RAM warning */
     if (key_out == (char*)0xcf00) *(char*)0xd020 = COLOR_YELLOW;
+}
+
+#define RLE_MARKER 0xff
+
+static void flush_rle() {
+    switch (run_length) {
+        default:
+            do_store(RLE_MARKER);
+            do_store(prev_ch);
+            do_store(run_length);
+            break;
+        case 2: do_store(prev_ch);
+        case 1: do_store(prev_ch);
+        case 0: break;
+    }
+}
+
+static void store_char(char ch) {
+    if (prev_ch == ch) {
+        ++run_length;
+    } else {
+        flush_rle();
+        run_length = 1;
+        prev_ch = ch;
+    }
 }
 
 static void run();
@@ -356,14 +386,29 @@ static void paste() {
 
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
+    static char rle_mode;
+    static unsigned char rle_char;
+
+    switch (rle_mode) {
+        case 1:
+            rle_mode = 2;
+            rle_char = ch;
+            return 0;
+        case 2:
+            rle_mode = 0;
+            while (ch--) handle(rle_char, 1);
+            return 0;
+    }
+
     if (copy_mode) {
         handle_copy(ch);
         return 1;
     }
 
     switch (ch) {
+        case RLE_MARKER: rle_mode = 1; return 0;
         case CH_F1: load(); run(); return 0;
-        case CH_F2: save(); run(); return 0;
+        case CH_F2: flush_rle(); save(); run(); return 0;
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
         case CH_F5: start_copy(); break;
@@ -420,7 +465,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
 static void run() {
     char* ptr = KEYS_START;
     playback_mode = 1;
-    reset_screen();
+    reset();
     while (ptr < key_out) {
         handle(*ptr++, 1);
     }
@@ -448,7 +493,7 @@ static void editloop(void) {
 }
 
 void loader_test() {
-    loader_open("1234");
+    loader_open("rle2");
     loader_getc();  /* skip address */
     playback_mode = 1;
     hide_cursor();
@@ -463,6 +508,6 @@ void loader_test() {
 
 void main(void) {
     init();
-    loader_test();
+    // loader_test();
     editloop();
 }
