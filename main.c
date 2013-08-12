@@ -177,7 +177,7 @@ static void do_store(char ch) {
     if (key_out == (char*)0xcf00) *(char*)0xd020 = COLOR_YELLOW;
 }
 
-#define RLE_MARKER 0xff
+#define RLE_MARKER 0
 
 static void flush_rle() {
     switch (run_length) {
@@ -186,6 +186,7 @@ static void flush_rle() {
             do_store(prev_ch);
             do_store(run_length);
             break;
+        case 3: do_store(prev_ch);
         case 2: do_store(prev_ch);
         case 1: do_store(prev_ch);
         case 0: break;
