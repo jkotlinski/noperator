@@ -2,6 +2,8 @@
 ; Default configuration (everything included)
 ;-------------------------------------------------------------------------------
 
+.include "zeropage.inc"
+
 .define LONG_NAMES       1             ;Set to nonzero to use long names (pointer in
                                 ;X,Y) or zero to use 2-letter names (letters
                                 ;in X,Y)
