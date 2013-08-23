@@ -66,7 +66,6 @@ void __fastcall__ startirq(void);
 static void init(void) {
     reset();
     show_cursor();
-    loader_init();
     // startirq();
 }
 
@@ -258,14 +257,16 @@ static void load() {
     textcolor(COLOR_WHITE);
     ls();
     cputs("load> ");
-    if (!mygets(buf)) return;
-    read = cbm_load(buf, 8, KEYS_START);
-    if (read) {
-        key_out = KEYS_START + read;
-    } else {
-        cputs(" err");
-        cgetc();
+    if (mygets(buf)) {
+        read = cbm_load(buf, 8, KEYS_START);
+        if (read) {
+            key_out = KEYS_START + read;
+        } else {
+            cputs(" err");
+            cgetc();
+        }
     }
+    run();
 }
 
 /* (CLIP_X1, CLIP_Y1) = top left.
@@ -408,7 +409,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
 
     switch (ch) {
         case RLE_MARKER: rle_mode = 1; return 0;
-        case CH_F1: load(); run(); return 0;
+        case CH_F1: load(); return 0;
         case CH_F2: flush_rle(); save(); run(); return 0;
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
@@ -494,6 +495,8 @@ static void editloop(void) {
 }
 
 void loader_test() {
+    reset();
+    loader_init();
     loader_open("rle2");
     loader_getc();  /* skip address */
     playback_mode = 1;
@@ -507,8 +510,29 @@ void loader_test() {
     show_cursor();
 }
 
+void anim_editor(void) {
+    init();
+    editloop();
+}
+
+void keyframe_editor(void) {}
+void movie_editor(void) {}
+
 void main(void) {
     init();
-    // loader_test();
-    editloop();
+    textcolor(COLOR_YELLOW);
+    cputsxy(0, 0, "movie noperator");
+    cputsxy(0, 2, "choose editor:");
+    cputsxy(0, 4, "[a]nimation");
+    cputsxy(0, 5, "[k]eyframe");
+    cputsxy(0, 6, "[m]ovie");
+    cputsxy(0, 8, "[t]est");
+    for (;;) {
+        switch (cgetc()) {
+            case 'a': anim_editor();
+            case 'k': keyframe_editor();
+            case 'm': movie_editor();
+            case 't': loader_test();
+        }
+    }
 }
