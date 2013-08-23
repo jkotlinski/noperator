@@ -1,5 +1,5 @@
 map <F4> :wall!<CR>:!ctags -R . &<CR>:make -j 2<CR>:make run<CR>
-map <F5> :!x64 nop<CR>
+map <F5> :!x64 nop.d64<CR>
 
 set tags+=~/.vim/cc65tags
 
