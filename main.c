@@ -518,7 +518,7 @@ void anim_editor(void) {
 void keyframe_editor(void) {}
 void movie_editor(void) {}
 
-void main(void) {
+void main_menu(void) {
     init();
     textcolor(COLOR_YELLOW);
     cputsxy(0, 0, "movie noperator");
@@ -535,4 +535,11 @@ void main(void) {
             case 't': loader_test();
         }
     }
+}
+
+void main(void) {
+    asm("sei");
+    *(unsigned int**)0x318 = (unsigned int*)0x80d;
+    asm("cli");
+    main_menu();
 }
