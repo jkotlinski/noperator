@@ -538,8 +538,8 @@ void main_menu(void) {
 }
 
 void main(void) {
-    asm("sei");
+    /* asm("sei");
     *(unsigned int**)0x318 = (unsigned int*)0x80d;
-    asm("cli");
+    asm("cli"); */
     main_menu();
 }
