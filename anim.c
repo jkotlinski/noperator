@@ -343,7 +343,8 @@ void handle_copy(char ch) {
         case CH_F5: /* copy done */
             {
                 char tmp = *(char*)0xd020;
-                *(char*)0xd020 = 5;
+                if (!playback_mode)
+                    *(char*)0xd020 = 5;
                 invert_copy_mark();
                 // Copies screen to clipboard.
                 memcpy(clipboard, DISPLAY_BASE, 40 * 25);
