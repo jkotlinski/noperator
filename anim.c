@@ -396,6 +396,7 @@ static void paste() {
 }
 
 /* returns 1 if ch should be stored in stream */
+#include <stdio.h>
 unsigned char handle(unsigned char ch, char first_keypress) {
     static char rle_mode;
     static unsigned char rle_char;
@@ -411,13 +412,17 @@ unsigned char handle(unsigned char ch, char first_keypress) {
             return 0;
     }
 
+    if (ch == RLE_MARKER) {
+        rle_mode = 1;
+        return 0;
+    }
+
     if (copy_mode) {
         handle_copy(ch);
         return 1;
     }
 
     switch (ch) {
-        case RLE_MARKER: rle_mode = 1; return 0;
         case CH_F1: load(); return 0;
         case CH_F2: flush_rle(); save(); run(); return 0;
         case CH_F3: ++*(char*)0xd020; break;
