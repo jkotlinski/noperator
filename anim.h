@@ -1,4 +1,4 @@
-/* {{{ Copyright (c) 2013, Johan Kotlinski
+/** {{{ Copyright (c) 2013, Johan Kotlinski
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -18,48 +18,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
-#include <conio.h>
+#ifndef ANIM_H
+#define ANIM_H
 
-#include "anim.h"
-#include "myload.h"
+void anim_editor();
+void anim_reset();
 
-void loader_test() {
-    anim_reset();
-    loader_init();
-    loader_open("rle2");
-    loader_getc();  /* skip address */
-    while (1) {
-        int ch = loader_getc();
-        if (ch == -1) break;
-        handle(ch, 1);
-    }
-}
+unsigned char handle(unsigned char ch, char first_keypress);
 
-void keyframe_editor(void) {}
-void movie_editor(void) {}
-
-void main_menu(void) {
-    anim_reset();
-    textcolor(COLOR_YELLOW);
-    cputsxy(0, 0, "movie noperator");
-    cputsxy(0, 2, "choose editor:");
-    cputsxy(0, 4, "[a]nimation");
-    cputsxy(0, 5, "[k]eyframe");
-    cputsxy(0, 6, "[m]ovie");
-    cputsxy(0, 8, "[t]est");
-    for (;;) {
-        switch (cgetc()) {
-            case 'a': anim_editor();
-            case 'k': keyframe_editor();
-            case 'm': movie_editor();
-            case 't': loader_test();
-        }
-    }
-}
-
-void main(void) {
-    /* asm("sei");
-    *(unsigned int**)0x318 = (unsigned int*)0x80d;
-    asm("cli"); */
-    main_menu();
-}
+#endif  /* ANIM_H */
