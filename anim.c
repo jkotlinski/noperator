@@ -52,7 +52,7 @@ static void show_cursor(void) {
     hidden_char = *charptr();
     hidden_color = *colptr();
     *colptr() = color;
-    *charptr() = ' ' | 0x80u;
+    *charptr() = *charptr() ^ 0x80u;
 }
 
 unsigned char run_length;
