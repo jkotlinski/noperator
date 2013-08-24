@@ -31,20 +31,28 @@ char curx;
 char cury;
 unsigned char color = COLOR_WHITE;
 unsigned char hidden_color;
+unsigned char hidden_char;
+
+static unsigned int offset() {
+    return cury * 40 + curx;
+}
+static char* colptr() {
+    return (unsigned char*)(0xd800 + offset());
+}
+static char* charptr() {
+    return (unsigned char*)(0x400 + offset());
+}
 
 static void hide_cursor(void) {
-    unsigned int i = cury * 40 + curx;
-    unsigned char* colptr = (unsigned char*)(0xd800 + i);
-    *colptr = hidden_color;
-    *(char*)(0x400 + i) ^= 0x80;
+    *charptr() = hidden_char;
+    *colptr() = hidden_color;
 }
 
 static void show_cursor(void) {
-    unsigned int i = cury * 40 + curx;
-    unsigned char* colptr = (unsigned char*)(0xd800 + i);
-    hidden_color = *colptr;
-    *colptr = color;
-    *(char*)(0x400 + i) ^= 0x80;
+    hidden_char = *charptr();
+    hidden_color = *colptr();
+    *colptr() = color;
+    *charptr() = ' ' | 0x80u;
 }
 
 unsigned char run_length;
@@ -474,14 +482,36 @@ static void run() {
     playback_mode = 0;
 }
 
+static unsigned char blink_on;
+static void unblink() {
+    if (blink_on) {
+        show_cursor();
+        blink_on = 0;
+    }
+}
+static void blink() {
+    if (blink_on) {
+        unblink();
+    } else {
+        hide_cursor();
+        blink_on = 1;
+    }
+}
+
 static void editloop(void) {
     char first_keypress = 1;
     unsigned char ticks_since_last_key;
     while (key_out < (char*)0xd000) {
+        static unsigned char blink_delay = 1;
         clock_t now = clock();
         while (now == clock());
+        if (--blink_delay == 0) {
+            blink();
+            blink_delay = 10;
+        }
         if (kbhit()) {
             unsigned char ch = cgetc();
+            unblink();
             hide_cursor();
             if (handle(ch, first_keypress))
                 store_char(ch);
