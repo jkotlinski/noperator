@@ -527,5 +527,6 @@ static void editloop(void) {
 
 void anim_editor(void) {
     init();
+    playback_mode = 0;
     editloop();
 }
