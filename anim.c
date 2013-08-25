@@ -396,7 +396,6 @@ static void paste() {
 }
 
 /* returns 1 if ch should be stored in stream */
-#include <stdio.h>
 unsigned char handle(unsigned char ch, char first_keypress) {
     static char rle_mode;
     static unsigned char rle_char;
