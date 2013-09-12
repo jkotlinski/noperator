@@ -102,14 +102,12 @@ static void screen_right() {
 }
 
 static void screen_down() {
-    /* TODO: make this less glitchy */
     memmove((char*)0x400 + 40, (char*)0x400, 40 * 25 - 40);
     memmove((char*)0xd800 + 40, (char*)0xd800, 40 * 25 - 40);
     memset((char*)0x400, ' ', 40);
 }
 
 static void screen_up() {
-    /* TODO: make this less glitchy */
     memmove((char*)0x400, (char*)0x400 + 40, 40 * 25 - 40);
     memmove((char*)0xd800, (char*)0xd800 + 40, 40 * 25 - 40);
     memset((char*)0x400 + 40 * 24, ' ', 40);
