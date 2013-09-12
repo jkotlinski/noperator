@@ -21,7 +21,7 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 
 #include "anim.h"
-#include "kf.h"
+#include "keyframe.h"
 #include "myload.h"
 
 void loader_test() {
