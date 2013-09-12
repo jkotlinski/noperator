@@ -91,12 +91,14 @@ static void screen_left() {
 }
 
 static void screen_right() {
-    unsigned char* ptr;
-    /* TODO: make this less glitchy */
-    memmove((char*)0x401, (char*)0x400, 40 * 25 - 1);
-    memmove((char*)0xd801, (char*)0xd800, 40 * 25 - 1);
-    for (ptr = (char*)0x400; ptr < (char*)0x400 + 40 * 25; ptr += 40)
-        *ptr = ' ';
+    unsigned int i = 0;
+    while (i < 40 * 25)
+    {
+        memmove((char*)0x401 + i, (char*)0x400 + i, 39);
+        memmove((char*)0xd801 + i, (char*)0xd800 + i, 39);
+        *((char*)0x400 + i) = ' ';
+        i += 40;
+    }
 }
 
 static void screen_down() {
