@@ -80,25 +80,25 @@ static void init(void) {
 // -----
 
 static void screen_left() {
-    unsigned int i = 0;
-    while (i < 40 * 25)
+    char *ch = (char*)0x400;
+    do
     {
-        memmove((char*)0x400 + i, (char*)0x401 + i, 39);
-        memmove((char*)0xd800 + i, (char*)0xd801 + i, 39);
-        *((char*)0x400 + 39 + i) = ' ';
-        i += 40;
-    }
+        memmove(ch, ch + 1, 39);
+        memmove(ch + 0xd400, ch + 0xd401, 39);
+        ch += 40;
+        *(ch - 1) = ' ';
+    } while (ch < (char*)0x400 + 40 * 25);
 }
 
 static void screen_right() {
-    unsigned int i = 0;
-    while (i < 40 * 25)
+    char *ch = (char*)0x400;
+    do
     {
-        memmove((char*)0x401 + i, (char*)0x400 + i, 39);
-        memmove((char*)0xd801 + i, (char*)0xd800 + i, 39);
-        *((char*)0x400 + i) = ' ';
-        i += 40;
-    }
+        memmove(ch + 1, ch, 39);
+        memmove(ch + 0xd401, ch + 0xd400, 39);
+        *ch = ' ';
+        ch += 40;
+    } while (ch < (char*)0x400 + 40 * 25);
 }
 
 static void screen_down() {
