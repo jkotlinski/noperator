@@ -18,16 +18,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
-#include "keyframe.h"
+#ifndef DISK_H
+#define DISK_H
 
-#include "screen.h"
+unsigned int prompt_load_anim(void);
+void prompt_save_anim(unsigned int size);
 
-static void editloop()
-{
-}
-
-void keyframe_editor(void)
-{
-    init_screen();
-    editloop();
-}
+#endif  /* DISK_H */

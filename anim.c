@@ -23,6 +23,7 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 #include <time.h>
 
+#include "disk.h"
 #include "myload.h"
 #include "screen.h"
 
@@ -216,68 +217,13 @@ static void store_char(char ch) {
 
 static void run();
 
-char mygets(char* buf) {
-    unsigned char i = 0;
-    while (1) {
-        const char ch = cgetc();
-        switch (ch) {
-            case CH_ENTER:
-                buf[i] = '\0';
-                return i;
-            case CH_DEL:
-                if (i) {
-                    --i;
-                    gotox(wherex() - 1);
-                    cputc(' ');
-                    gotox(wherex() - 1);
-                }
-                break;
-            default:
-                buf[i++] = ch;
-                cputc(ch);
-        }
-    }
-}
-
 static void save() {
-    char buf[20];
-    unsigned int size = key_out - KEYS_START;
-    clrscr();
-    textcolor(COLOR_WHITE);
-    cputs("save> ");
-    if (!mygets(buf)) return;
-    cputs(cbm_save(buf, 8, KEYS_START, size) ? " err" : " ok");
-    cgetc();
+    prompt_save_anim(key_out - KEYS_START);
 }
 
-static void ls() {
-    struct cbm_dirent direntry;
-    cbm_opendir(1, 8);
-    while (!cbm_readdir(1, &direntry)) {
-        if (direntry.size) {
-            cputs(direntry.name);
-            gotoxy(0, wherey() + 1);
-        }
-    }
-    cbm_close(1);
-}
-
-static void load() {
-    char buf[20];
-    unsigned int read;
-    clrscr();
-    textcolor(COLOR_WHITE);
-    ls();
-    cputs("load> ");
-    if (mygets(buf)) {
-        read = cbm_load(buf, 8, KEYS_START);
-        if (read) {
-            key_out = KEYS_START + read;
-        } else {
-            cputs(" err");
-            cgetc();
-        }
-    }
+static void load()
+{
+    key_out = KEYS_START + prompt_load_anim();
     run();
 }
 
