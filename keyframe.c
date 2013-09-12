@@ -20,14 +20,32 @@ THE SOFTWARE. }}} */
 
 #include "keyframe.h"
 
+#include "disk.h"
 #include "screen.h"
+
+extern unsigned char _RAM_LAST__;  /* Defined by linker. */
+#define KEYS_START (&_RAM_LAST__ + 1)
+unsigned char* last_char;
 
 static void editloop()
 {
+    for (;;) {
+    }
 }
 
 void keyframe_editor(void)
 {
     init_screen();
+
+    for (;;) {
+        unsigned int read;
+        if (read = prompt_load_anim()) {
+            last_char = KEYS_START + read;
+            break;
+        }
+    }
+
+    init_screen();
+
     editloop();
 }
