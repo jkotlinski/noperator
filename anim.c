@@ -24,6 +24,7 @@ THE SOFTWARE. }}} */
 #include <time.h>
 
 #include "myload.h"
+#include "screen.h"
 
 #define DISPLAY_BASE ((char*)0x400)
 
@@ -63,11 +64,8 @@ void anim_reset() {
     run_length = 0;
     curx = 0;
     cury = 0;
-    *(char*)0xd020 = 0;
-    *(char*)0xd021 = 0;
-    *(char*)0xd018 &= ~2;  // uppercase + gfx
-    memset((char*)0x400, ' ', 40 * 25);
     color = COLOR_WHITE;
+    init_screen();
 }
 
 void __fastcall__ startirq(void);
