@@ -342,12 +342,21 @@ static void paste() {
     }
 }
 
+static void pause_one_clock()
+{
+    clock_t now = clock();
+    while (now == clock());
+}
+
 static void insert_keyframe()
 {
-    store_char(CH_INS);
+    ++*(char*)0xd020;
+    store_char(0x13);  /* HOME */
 #define KEYFRAME_SPEED_NONE 0x8f8fu  /* Ad hoc. */
     store_char(KEYFRAME_SPEED_NONE);
     store_char(KEYFRAME_SPEED_NONE >> 8);
+    pause_one_clock();
+    --*(char*)0xd020;
 }
 
 /* returns 1 if ch should be stored in stream */
@@ -387,9 +396,8 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case CH_F8: break;
         case 3: run(); return 0;  /* RUN */
         case 0x83: return 0;  /* STOP */
-        case 0x13: break;  /* HOME */
+        case 0x13: insert_keyframe(); return 0;  /* HOME */
         case 0x93: break;  /* CLR */
-        case CH_INS: insert_keyframe(); return 0;
         case CH_DEL:
                    cur_left(0);
                    emit(' ');
@@ -464,8 +472,7 @@ static void editloop(void) {
     unsigned char ticks_since_last_key;
     while (last_char < (char*)0xd000) {
         static unsigned char blink_delay = 1;
-        clock_t now = clock();
-        while (now == clock());
+        pause_one_clock();
         if (--blink_delay == 0) {
             blink();
             blink_delay = 10;
@@ -488,5 +495,6 @@ static void editloop(void) {
 void anim_editor(void) {
     init();
     playback_mode = 0;
+    insert_keyframe();
     editloop();
 }

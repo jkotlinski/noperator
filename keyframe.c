@@ -20,13 +20,22 @@ THE SOFTWARE. }}} */
 
 #include "keyframe.h"
 
+#include <c64.h>
+#include <conio.h>
+
 #include "disk.h"
 #include "keybuf.h"
 #include "screen.h"
 
+static unsigned char* editpos = KEYS_START;
+
 static void editloop()
 {
     for (;;) {
+        switch (cgetc())
+        {
+            case CH_CURS_RIGHT: ++*(char*)0xd020; break;
+        }
     }
 }
 
