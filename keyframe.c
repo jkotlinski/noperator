@@ -22,6 +22,7 @@ THE SOFTWARE. }}} */
 
 #include <c64.h>
 #include <conio.h>
+#include <string.h>
 
 #include "disk.h"
 #include "keybuf.h"
@@ -46,9 +47,28 @@ static char* next_keyframe()
     }
 }
 
+static char behind_speed_buf[20];
+static char curx;
+static char cury;
+
+static void store_screen()
+{
+    curx = wherex();
+    cury = wherey();
+    memcpy(behind_speed_buf, (char*)0x400 + 24 * 40, sizeof(behind_speed_buf));
+}
+static void restore_screen()
+{
+    memcpy(0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
+    gotoxy(curx, cury);
+}
+
 static void print_speed()
 {
     unsigned int speed = *(int*)(read_pos + 1);
+
+    store_screen();
+
     gotoxy(0, 24);
     printf("%i-%i ",
             read_pos - KEYS_START,
@@ -58,15 +78,33 @@ static void print_speed()
     }
 }
 
+static void goto_next_keyframe()
+{
+    if (next_keyframe() >= last_char)
+        return;
+    restore_screen();
+    read_pos += 3;
+    for (;;) {
+        char ch = *read_pos;
+        switch (ch) {
+            case CH_HOME:
+                print_speed();
+                return;  /* Done! */
+            default:
+                cputc(ch);
+                ++read_pos;
+        }
+    }
+}
+
 static void editloop()
 {
+    print_speed();
     for (;;) {
-        print_speed();
         switch (cgetc())
         {
             case CH_CURS_RIGHT:
-                if (next_keyframe() < last_char)
-                    read_pos = next_keyframe();
+                goto_next_keyframe();
                 break;
         }
     }
