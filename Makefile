@@ -31,7 +31,7 @@ all:   	nop
 	@echo $<
 	@$(AS) $(basename $<).s
 
-OBJS = main.o keyframe.o anim.o irq.o loader.o myload.o screen.o disk.o keybuf.o
+OBJS = main.o keyframe.o anim.o irq.o loader.o myload.o screen.o disk.o keybuf.o cursor.o emit.o
 
 -include $(OBJS:%.o=$(DEPDIR)/%.u)
 

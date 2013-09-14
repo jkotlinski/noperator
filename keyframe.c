@@ -24,7 +24,9 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 #include <string.h>
 
+#include "cursor.h"
 #include "disk.h"
+#include "emit.h"
 #include "keybuf.h"
 #include "screen.h"
 
@@ -48,19 +50,14 @@ static char* next_keyframe()
 }
 
 static char behind_speed_buf[20];
-static char curx;
-static char cury;
 
 static void store_screen()
 {
-    curx = wherex();
-    cury = wherey();
     memcpy(behind_speed_buf, (char*)0x400 + 24 * 40, sizeof(behind_speed_buf));
 }
 static void restore_screen()
 {
     memcpy((char*)0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
-    gotoxy(curx, cury);
 }
 
 static void print_speed()
@@ -90,10 +87,26 @@ static void goto_next_keyframe()
             case CH_HOME:
                 print_speed();
                 return;  /* Done! */
+            case CH_CURS_LEFT:
+                cur_left(1);
+                break;
+            case CH_CURS_RIGHT:
+                cur_right(1);
+                break;
+            case CH_CURS_DOWN:
+                cur_down(1);
+                break;
+            case CH_CURS_UP:
+                cur_up(1);
+                break;
+            case CH_ENTER:
+                resetcurx();
+                cur_down(0);
+                break;
             default:
-                cputc(ch);
-                ++read_pos;
+                emit(ch);
         }
+        ++read_pos;
     }
 }
 
