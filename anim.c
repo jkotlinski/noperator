@@ -216,11 +216,14 @@ static void run();
 
 static void save() {
     prompt_save_anim(last_char - KEYS_START);
+    run();
 }
 
 static void load()
 {
-    last_char = KEYS_START + prompt_load_anim();
+    unsigned int read = prompt_load_anim();
+    if (read)
+        last_char = KEYS_START + read;
     run();
 }
 
