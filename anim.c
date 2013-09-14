@@ -364,8 +364,15 @@ static void insert_keyframe()
 
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
+    static char skip_chars;
     static char rle_mode;
     static unsigned char rle_char;
+
+    if (skip_chars)
+    {
+        --skip_chars;
+        return 0;
+    }
 
     switch (rle_mode) {
         case 1:
@@ -399,7 +406,12 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case CH_F8: break;
         case 3: run(); return 0;  /* RUN */
         case 0x83: return 0;  /* STOP */
-        case 0x13: insert_keyframe(); return 0;  /* HOME */
+        case 0x13: /* HOME */
+                   if (playback_mode)
+                       skip_chars = 2;
+                   else
+                       insert_keyframe();
+                   return 0;
         case 0x93: break;  /* CLR */
         case CH_DEL:
                    cur_left(0);
