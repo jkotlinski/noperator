@@ -22,8 +22,7 @@ THE SOFTWARE. }}} */
 
 #include <conio.h>
 
-extern unsigned char _RAM_LAST__;  /* Defined by linker. */
-#define KEYS_START (&_RAM_LAST__ + 1)
+#include "keybuf.h"
 
 static char mygets(char* buf) {
     unsigned char i = 0;

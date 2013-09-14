@@ -24,6 +24,7 @@ THE SOFTWARE. }}} */
 #include <time.h>
 
 #include "disk.h"
+#include "keybuf.h"
 #include "myload.h"
 #include "screen.h"
 
@@ -179,14 +180,10 @@ static void emit(unsigned char ch) {
 
 #define switch_color(col) color = col;
 
-extern unsigned char _RAM_LAST__;  /* Defined by linker. */
-#define KEYS_START (&_RAM_LAST__ + 1)
-static char* key_out = KEYS_START;
-
 static void do_store(char ch) {
-    *key_out++ = ch;
+    *last_char++ = ch;
     /* running out of RAM warning */
-    if (key_out == (char*)0xcf00) *(char*)0xd020 = COLOR_YELLOW;
+    if (last_char == (char*)0xcf00) *(char*)0xd020 = COLOR_YELLOW;
 }
 
 #define RLE_MARKER 0
@@ -218,12 +215,12 @@ static void store_char(char ch) {
 static void run();
 
 static void save() {
-    prompt_save_anim(key_out - KEYS_START);
+    prompt_save_anim(last_char - KEYS_START);
 }
 
 static void load()
 {
-    key_out = KEYS_START + prompt_load_anim();
+    last_char = KEYS_START + prompt_load_anim();
     run();
 }
 
@@ -431,7 +428,7 @@ static void run() {
     char* ptr = KEYS_START;
     playback_mode = 1;
     anim_reset();
-    while (ptr < key_out) {
+    while (ptr < last_char) {
         handle(*ptr++, 1);
     }
     playback_mode = 0;
@@ -456,7 +453,7 @@ static void blink() {
 static void editloop(void) {
     char first_keypress = 1;
     unsigned char ticks_since_last_key;
-    while (key_out < (char*)0xd000) {
+    while (last_char < (char*)0xd000) {
         static unsigned char blink_delay = 1;
         clock_t now = clock();
         while (now == clock());

@@ -18,31 +18,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
-#include "keyframe.h"
+#ifndef KEYBUF_H
+#define KEYBUF_H
 
-#include "disk.h"
-#include "keybuf.h"
-#include "screen.h"
+extern unsigned char _RAM_LAST__;  /* Defined by linker. */
+#define KEYS_START (&_RAM_LAST__ + 1)
+extern unsigned char* last_char;
 
-static void editloop()
-{
-    for (;;) {
-    }
-}
-
-void keyframe_editor(void)
-{
-    init_screen();
-
-    for (;;) {
-        unsigned int read;
-        if (read = prompt_load_anim()) {
-            last_char = KEYS_START + read;
-            break;
-        }
-    }
-
-    init_screen();
-
-    editloop();
-}
+#endif  /* KEYBUF_H */
