@@ -342,6 +342,14 @@ static void paste() {
     }
 }
 
+static void insert_keyframe()
+{
+    store_char(CH_INS);
+#define KEYFRAME_SPEED_NONE 0x8f8fu  /* Ad hoc. */
+    store_char(KEYFRAME_SPEED_NONE);
+    store_char(KEYFRAME_SPEED_NONE >> 8);
+}
+
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
     static char rle_mode;
@@ -381,6 +389,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case 0x83: return 0;  /* STOP */
         case 0x13: break;  /* HOME */
         case 0x93: break;  /* CLR */
+        case CH_INS: insert_keyframe(); return 0;
         case CH_DEL:
                    cur_left(0);
                    emit(' ');
