@@ -23,9 +23,7 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 #include <time.h>
 
-#include "cursor.h"
 #include "disk.h"
-#include "emit.h"
 #include "keybuf.h"
 #include "keyframe.h"
 #include "myload.h"
@@ -33,11 +31,14 @@ THE SOFTWARE. }}} */
 
 #define DISPLAY_BASE ((char*)0x400)
 
+char curx;
+char cury;
+unsigned char color = COLOR_WHITE;
 unsigned char hidden_color;
 unsigned char hidden_char;
 
 static unsigned int offset() {
-    return cury() * 40 + curx();
+    return cury * 40 + curx;
 }
 static char* colptr() {
     return (unsigned char*)(0xd800 + offset());
@@ -64,6 +65,8 @@ char prev_ch;
 void anim_reset() {
     prev_ch = 0;
     run_length = 0;
+    curx = 0;
+    cury = 0;
     color = COLOR_WHITE;
     init_screen();
 }
@@ -76,6 +79,105 @@ static void init(void) {
 }
 
 // -----
+
+static void screen_left() {
+    char *ch = (char*)0x400;
+    do
+    {
+        memmove(ch, ch + 1, 39);
+        memmove(ch + 0xd400, ch + 0xd401, 39);
+        ch += 40;
+        *(ch - 1) = ' ';
+    } while (ch < (char*)0x400 + 40 * 25);
+}
+
+static void screen_right() {
+    char *ch = (char*)0x400;
+    do
+    {
+        memmove(ch + 1, ch, 39);
+        memmove(ch + 0xd401, ch + 0xd400, 39);
+        *ch = ' ';
+        ch += 40;
+    } while (ch < (char*)0x400 + 40 * 25);
+}
+
+static void screen_down() {
+    memmove((char*)0x400 + 40, (char*)0x400, 40 * 25 - 40);
+    memmove((char*)0xd800 + 40, (char*)0xd800, 40 * 25 - 40);
+    memset((char*)0x400, ' ', 40);
+}
+
+static void screen_up() {
+    memmove((char*)0x400, (char*)0x400 + 40, 40 * 25 - 40);
+    memmove((char*)0xd800, (char*)0xd800 + 40, 40 * 25 - 40);
+    memset((char*)0x400 + 40 * 24, ' ', 40);
+}
+
+static char cur_up(char may_move_screen) {
+    if (cury) {
+        --cury;
+    } else if (may_move_screen)
+        screen_down();
+    else
+        return 0;
+    return 1;
+}
+
+static char cur_down(char may_move_screen) {
+    if (cury != 24) {
+        ++cury;
+    } else if (may_move_screen)
+        screen_up();
+    else
+        return 0;
+    return 1;
+}
+
+static char cur_left(char may_move_screen) {
+    if (curx)
+        --curx;
+    else if (may_move_screen)
+        screen_right();
+    else
+        return 0;
+    return 1;
+}
+
+static char cur_right(char may_move_screen) {
+    if (curx != 39)
+        ++curx;
+    else if (may_move_screen)
+        screen_left();
+    else
+        return 0;
+    return 1;
+}
+
+unsigned char reverse;
+
+static void emit(unsigned char ch) {
+    unsigned int i = cury * 40 + curx;
+    /* calculate screencode */
+    if (ch < 0x20) {
+        ch ^= 0x80;
+    } else if (ch < 0x40) {
+    } else if (ch < 0x60) {
+        ch += 0xc0;
+    } else if (ch < 0x80) {
+        ch += 0xe0;
+    } else if (ch < 0xa0) {
+        ch += 0x40;
+    } else if (ch < 0xc0) {
+        ch += 0xc0;
+    } else if (ch != 0xff) {
+        ch ^= 0x80;
+    }
+    ch ^= reverse;
+    *(unsigned char*)(0xd800 + i) = color;
+    *(char*)(0x400 + i) = ch;
+    cur_right(0);
+}
 
 #define switch_color(col) color = col;
 
@@ -217,10 +319,10 @@ void handle_copy(char ch) {
 }
 
 static void start_copy() {
-    CLIP_X1 = curx();
-    CLIP_X2 = curx();
-    CLIP_Y1 = cury();
-    CLIP_Y2 = cury();
+    CLIP_X1 = curx;
+    CLIP_X2 = curx;
+    CLIP_Y1 = cury;
+    CLIP_Y2 = cury;
 
     invert_copy_mark();
     copy_mode = 1;
@@ -232,11 +334,11 @@ static void paste() {
 
     // Pastes region.
     for (y = CLIP_Y1; y <= CLIP_Y2; ++y) {
-        const char dst_y = y + cury() - CLIP_Y1;
+        const char dst_y = y + cury - CLIP_Y1;
         char x;
         if (dst_y >= 25) break;
         for (x = CLIP_X1; x <= CLIP_X2; ++x) {
-            const char dst_x = x + curx() - CLIP_X1;
+            const char dst_x = x + curx - CLIP_X1;
             if (dst_x >= 40) break;
             DISPLAY_BASE[dst_y * 40 + dst_x] = clipboard[y * 40 + x];
             ((char*)0xd800)[dst_y * 40 + dst_x] = clipboard_color[y * 40 + x];
@@ -317,7 +419,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
                    cur_left(0);
                    break;
         case CH_ENTER:
-                   resetcurx();
+                   curx = 0;
                    cur_down(0);
                    break;
         case CH_CURS_RIGHT: return cur_right(first_keypress);
