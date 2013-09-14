@@ -59,7 +59,7 @@ static void store_screen()
 }
 static void restore_screen()
 {
-    memcpy(0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
+    memcpy((char*)0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
     gotoxy(curx, cury);
 }
 
