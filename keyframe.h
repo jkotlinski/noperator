@@ -23,4 +23,6 @@ THE SOFTWARE. }}} */
 
 void keyframe_editor(void);
 
+#define KEYFRAME_SPEED_NONE 0x8f8fu  /* Ad hoc. */
+
 #endif  /* KF_H */

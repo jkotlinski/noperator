@@ -25,6 +25,7 @@ THE SOFTWARE. }}} */
 
 #include "disk.h"
 #include "keybuf.h"
+#include "keyframe.h"
 #include "myload.h"
 #include "screen.h"
 
@@ -355,7 +356,6 @@ static void insert_keyframe()
 {
     ++*(char*)0xd020;
     store_char(0x13);  /* HOME */
-#define KEYFRAME_SPEED_NONE 0x8f8fu  /* Ad hoc. */
     store_char(KEYFRAME_SPEED_NONE);
     store_char(KEYFRAME_SPEED_NONE >> 8);
     pause_one_clock();

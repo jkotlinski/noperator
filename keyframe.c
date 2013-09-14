@@ -27,14 +27,47 @@ THE SOFTWARE. }}} */
 #include "keybuf.h"
 #include "screen.h"
 
-static unsigned char* editpos = KEYS_START;
+#include <stdio.h>
+
+static char* read_pos = KEYS_START;
+
+#define CH_HOME 0x13
+
+static char* next_keyframe()
+{
+    char *pos = read_pos + 2;
+    for (;;) {
+        if (pos >= last_char)
+            return last_char;
+        if (*pos == CH_HOME) {
+            return pos;
+        }
+        ++pos;
+    }
+}
+
+static void print_speed()
+{
+    unsigned int speed = *(int*)(read_pos + 1);
+    gotoxy(0, 24);
+    printf("%i-%i ",
+            read_pos - KEYS_START,
+            next_keyframe() - KEYS_START);
+    if (speed == KEYFRAME_SPEED_NONE) {
+        cputs("spd? bts?");
+    }
+}
 
 static void editloop()
 {
     for (;;) {
+        print_speed();
         switch (cgetc())
         {
-            case CH_CURS_RIGHT: ++*(char*)0xd020; break;
+            case CH_CURS_RIGHT:
+                if (next_keyframe() < last_char)
+                    read_pos = next_keyframe();
+                break;
         }
     }
 }
