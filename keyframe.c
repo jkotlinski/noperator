@@ -60,6 +60,14 @@ static void restore_screen()
     memcpy((char*)0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
 }
 
+static void print_fract(unsigned int number)
+{
+    // Prints 4.12 number.
+    printf("%u", number >> 12);
+    number -= (number >> 12) << 12;
+    printf(".%03x", number);
+}
+
 static void print_speed()
 {
     unsigned int speed = *(int*)(read_pos + 1);
@@ -72,6 +80,9 @@ static void print_speed()
             next_keyframe() - KEYS_START);
     if (speed == KEYFRAME_SPEED_NONE) {
         cputs("spd? bts?");
+    } else {
+        cputs("spd:");
+        print_fract(speed);
     }
 }
 
@@ -135,6 +146,54 @@ static void goto_prev_keyframe()
     print_speed();
 }
 
+static unsigned char read_digits() {
+    unsigned char number = 0;
+    while (1) {
+        char c = cgetc();
+        if (c >= '0' && c <= '9') {
+            cputc(c);
+            number *= 10;
+            number += c - '0';
+            if (number > 100) break;
+        } else if (c == CH_ENTER) {
+            break;
+        }
+    }
+    return number;
+}
+
+static unsigned int keys_in_segment()
+{
+    /* Keys in segment, excluding keyframe. */
+    return next_keyframe() - read_pos - 3;
+}
+
+static void calc_speed(unsigned char beats)
+{
+    /* speed = (keys << 12) / ticks) */
+    unsigned long speed = keys_in_segment();
+    speed <<= 12;
+    speed /= 24 * beats;
+    if (speed >= (1 << 16)) return;
+    *(unsigned int*)(read_pos + 1) = speed;
+}
+
+static void enter_beats()
+{
+    unsigned char beats;
+    gotoxy(0, 24);
+    cputs("                 ");
+    gotoxy(0, 24);
+    cputs("bts:");
+    revers(1);
+    cputs("   ");
+    gotox(wherex() - 3);
+    beats = read_digits();
+    revers(0);
+    calc_speed(beats);
+    print_speed();
+}
+
 static void editloop()
 {
     print_speed();
@@ -146,6 +205,9 @@ static void editloop()
                 break;
             case CH_CURS_LEFT:
                 goto_prev_keyframe();
+                break;
+            case 'b':
+                enter_beats();
                 break;
         }
     }

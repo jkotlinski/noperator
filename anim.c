@@ -131,7 +131,6 @@ static void pause_one_clock()
 static void insert_keyframe()
 {
     ++*(char*)0xd020;
-    flush_rle();
     store_char(0x13);  /* HOME */
     store_char(KEYFRAME_SPEED_NONE);
     store_char(KEYFRAME_SPEED_NONE >> 8);
