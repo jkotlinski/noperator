@@ -30,8 +30,6 @@ THE SOFTWARE. }}} */
 #include "rledec.h"
 #include "screen.h"
 
-#include <stdio.h>
-
 static char* read_pos = KEYS_START;
 
 #define CH_HOME 0x13
@@ -50,7 +48,7 @@ static char* next_keyframe()
     }
 }
 
-static char behind_speed_buf[25];
+static char behind_speed_buf[30];
 
 static void store_screen()
 {
@@ -61,12 +59,25 @@ static void restore_screen()
     memcpy((char*)0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
 }
 
+static void print_dec(unsigned int number)
+{
+    char buf[5];
+    char i = 0;
+    do {
+        buf[i++] = number % 10;
+        number /= 10;
+    } while (number);
+    while (i) {
+        cputc('0' + buf[--i]);
+    }
+}
+
 static void print_fract(unsigned int number)
 {
     // Prints 4.12 number.
-    printf("%u.%03x",
-            (int)(number / (1 << 12)),
-            (int)(number % (1 << 12)));
+    print_dec(number / (1 << 12));
+    cputc('.');
+    print_dec(number % (1 << 12));
 }
 
 static unsigned int keys_in_segment()
@@ -87,9 +98,9 @@ static void print_beats(unsigned int speed)
     unsigned long keys = keys_in_segment();
     keys <<= 12;
     keys /= speed;
-    printf("%u.%u",
-            (unsigned int)(keys / 24),
-            (unsigned int)(keys % 24));
+    print_dec(keys / 24);
+    cputc('.');
+    print_dec(keys % 24);
 }
 
 static void print_speed()
@@ -99,9 +110,10 @@ static void print_speed()
     store_screen();
 
     gotoxy(0, 24);
-    printf("%i-%i ",
-            read_pos - KEYS_START,
-            next_keyframe() - KEYS_START);
+    print_dec(read_pos - KEYS_START);
+    cputc('-');
+    print_dec(next_keyframe() - KEYS_START);
+    cputc(' ');
     if (speed == KEYFRAME_SPEED_NONE) {
         cputs("spd? bts?");
     } else {
@@ -202,7 +214,8 @@ static void enter_beats()
 {
     unsigned char beats;
     gotoxy(0, 24);
-    cputs("                         ");
+    for (beats = 0; beats < sizeof(behind_speed_buf); ++beats)
+        cputc(' ');
     gotoxy(0, 24);
     cputs("bts:");
     revers(1);
