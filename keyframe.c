@@ -34,6 +34,7 @@ THE SOFTWARE. }}} */
 static char* read_pos = KEYS_START;
 
 #define CH_HOME 0x13
+#define RLE_MARKER 0
 
 static char* next_keyframe()
 {
@@ -79,7 +80,7 @@ static void goto_next_keyframe()
     if (next_keyframe() >= last_char)
         return;
     restore_screen();
-    read_pos += 3;
+    read_pos += 3;  /* Skips keyframe. */
     for (;;) {
         char ch = *read_pos;
         switch (ch) {
@@ -93,6 +94,47 @@ static void goto_next_keyframe()
     }
 }
 
+static void goto_prev_keyframe()
+{
+    char* pos = KEYS_START;
+    char* new_read_pos = KEYS_START;
+    if (read_pos == KEYS_START) return;
+
+    /* Finds new_read_pos. */
+    while (1) {
+        char ch = *pos;
+        if (ch == CH_HOME) {
+            if (pos < read_pos) {
+                new_read_pos = pos;
+                pos += 3;
+            } else {
+                break;
+            }
+        } else if (ch == RLE_MARKER) {
+            pos += 3;  /* Skips RLE. */
+        } else {
+            ++pos;
+        }
+    }
+
+    init_screen();
+    cursor_home();
+
+    /* Replays up to new_read_pos. */
+    read_pos = KEYS_START;
+    while (read_pos < new_read_pos) {
+        const char ch = *read_pos;
+        if (ch == CH_HOME) {
+            read_pos += 3;
+        } else {
+            handle(ch, 1);
+            ++read_pos;
+        }
+    }
+
+    print_speed();
+}
+
 static void editloop()
 {
     print_speed();
@@ -101,6 +143,9 @@ static void editloop()
         {
             case CH_CURS_RIGHT:
                 goto_next_keyframe();
+                break;
+            case CH_CURS_LEFT:
+                goto_prev_keyframe();
                 break;
         }
     }
