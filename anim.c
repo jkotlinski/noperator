@@ -24,6 +24,7 @@ THE SOFTWARE. }}} */
 #include <time.h>
 
 #include "disk.h"
+#include "handle.h"
 #include "keybuf.h"
 #include "keyframe.h"
 #include "myload.h"
@@ -31,14 +32,11 @@ THE SOFTWARE. }}} */
 
 #define DISPLAY_BASE ((char*)0x400)
 
-char curx;
-char cury;
-unsigned char color = COLOR_WHITE;
 unsigned char hidden_color;
 unsigned char hidden_char;
 
 static unsigned int offset() {
-    return cury * 40 + curx;
+    return cury() * 40 + curx();
 }
 static char* colptr() {
     return (unsigned char*)(0xd800 + offset());
@@ -63,10 +61,9 @@ unsigned char run_length;
 char prev_ch;
 
 void anim_reset() {
+    cursor_home();
     prev_ch = 0;
     run_length = 0;
-    curx = 0;
-    cury = 0;
     color = COLOR_WHITE;
     init_screen();
 }
@@ -79,107 +76,6 @@ static void init(void) {
 }
 
 // -----
-
-static void screen_left() {
-    char *ch = (char*)0x400;
-    do
-    {
-        memmove(ch, ch + 1, 39);
-        memmove(ch + 0xd400, ch + 0xd401, 39);
-        ch += 40;
-        *(ch - 1) = ' ';
-    } while (ch < (char*)0x400 + 40 * 25);
-}
-
-static void screen_right() {
-    char *ch = (char*)0x400;
-    do
-    {
-        memmove(ch + 1, ch, 39);
-        memmove(ch + 0xd401, ch + 0xd400, 39);
-        *ch = ' ';
-        ch += 40;
-    } while (ch < (char*)0x400 + 40 * 25);
-}
-
-static void screen_down() {
-    memmove((char*)0x400 + 40, (char*)0x400, 40 * 25 - 40);
-    memmove((char*)0xd800 + 40, (char*)0xd800, 40 * 25 - 40);
-    memset((char*)0x400, ' ', 40);
-}
-
-static void screen_up() {
-    memmove((char*)0x400, (char*)0x400 + 40, 40 * 25 - 40);
-    memmove((char*)0xd800, (char*)0xd800 + 40, 40 * 25 - 40);
-    memset((char*)0x400 + 40 * 24, ' ', 40);
-}
-
-static char cur_up(char may_move_screen) {
-    if (cury) {
-        --cury;
-    } else if (may_move_screen)
-        screen_down();
-    else
-        return 0;
-    return 1;
-}
-
-static char cur_down(char may_move_screen) {
-    if (cury != 24) {
-        ++cury;
-    } else if (may_move_screen)
-        screen_up();
-    else
-        return 0;
-    return 1;
-}
-
-static char cur_left(char may_move_screen) {
-    if (curx)
-        --curx;
-    else if (may_move_screen)
-        screen_right();
-    else
-        return 0;
-    return 1;
-}
-
-static char cur_right(char may_move_screen) {
-    if (curx != 39)
-        ++curx;
-    else if (may_move_screen)
-        screen_left();
-    else
-        return 0;
-    return 1;
-}
-
-unsigned char reverse;
-
-static void emit(unsigned char ch) {
-    unsigned int i = cury * 40 + curx;
-    /* calculate screencode */
-    if (ch < 0x20) {
-        ch ^= 0x80;
-    } else if (ch < 0x40) {
-    } else if (ch < 0x60) {
-        ch += 0xc0;
-    } else if (ch < 0x80) {
-        ch += 0xe0;
-    } else if (ch < 0xa0) {
-        ch += 0x40;
-    } else if (ch < 0xc0) {
-        ch += 0xc0;
-    } else if (ch != 0xff) {
-        ch ^= 0x80;
-    }
-    ch ^= reverse;
-    *(unsigned char*)(0xd800 + i) = color;
-    *(char*)(0x400 + i) = ch;
-    cur_right(0);
-}
-
-#define switch_color(col) color = col;
 
 static void do_store(char ch) {
     *last_char++ = ch;
@@ -228,124 +124,6 @@ static void load()
     run();
 }
 
-/* (CLIP_X1, CLIP_Y1) = top left.
- * (CLIP_X2, CLIP_Y2) = bottom right.
- */
-static char CLIP_X1 = 0xff;
-static char CLIP_X2;
-static char CLIP_Y1;
-static char CLIP_Y2;
-
-char playback_mode = 1;  // if set, some UI operations will be disabled
-static void invert_copy_mark() {
-    if (playback_mode) return;
-    {
-        const unsigned char x2 = ((CLIP_X1 < CLIP_X2) ? CLIP_X2 : CLIP_X1) + 1;
-        const unsigned char y2 = ((CLIP_Y1 < CLIP_Y2) ? CLIP_Y2 : CLIP_Y1) + 1;
-        unsigned char y1 = (CLIP_Y1 < CLIP_Y2) ? CLIP_Y1 : CLIP_Y2;
-        while (y1 < y2) {
-            unsigned char x1 = (CLIP_X1 < CLIP_X2) ? CLIP_X1 : CLIP_X2;
-            unsigned char* ptr = DISPLAY_BASE + y1 * 40 + x1;
-            x1 = x2 - x1;
-            while (x1--) {
-                *ptr ^= 0x80;
-                ++ptr;
-            }
-            ++y1;
-        }
-    }
-}
-
-char copy_mode;
-
-char clipboard[40 * 25];
-char clipboard_color[40 * 25];
-
-void handle_copy(char ch) {
-    switch (ch) {
-        case CH_CURS_DOWN:
-            if (CLIP_Y2 < 24) {
-                invert_copy_mark();
-                ++CLIP_Y2;
-                invert_copy_mark();
-            }
-            break;
-        case CH_CURS_UP:
-            if (CLIP_Y2) {
-                invert_copy_mark();
-                --CLIP_Y2;
-                invert_copy_mark();
-            }
-            break;
-        case CH_CURS_RIGHT:
-            if (CLIP_X2 < 39) {
-                invert_copy_mark();
-                ++CLIP_X2;
-                invert_copy_mark();
-            }
-            break;
-        case CH_CURS_LEFT:
-            if (CLIP_X2) {
-                invert_copy_mark();
-                --CLIP_X2;
-                invert_copy_mark();
-            }
-            break;
-        case CH_F5: /* copy done */
-            {
-                char tmp = *(char*)0xd020;
-                if (!playback_mode)
-                    *(char*)0xd020 = 5;
-                invert_copy_mark();
-                // Copies screen to clipboard.
-                memcpy(clipboard, DISPLAY_BASE, 40 * 25);
-                memcpy(clipboard_color, (char*)0xd800, 40 * 25);
-                // Orders coordinates.
-                if (CLIP_X1 > CLIP_X2) {
-                    const char tmp = CLIP_X1;
-                    CLIP_X1 = CLIP_X2;
-                    CLIP_X2 = tmp;
-                }
-                if (CLIP_Y1 > CLIP_Y2) {
-                    const char tmp = CLIP_Y1;
-                    CLIP_Y1 = CLIP_Y2;
-                    CLIP_Y2 = tmp;
-                }
-                copy_mode = 0;
-                *(char*)0xd020 = tmp;
-            }
-            break;
-    }
-}
-
-static void start_copy() {
-    CLIP_X1 = curx;
-    CLIP_X2 = curx;
-    CLIP_Y1 = cury;
-    CLIP_Y2 = cury;
-
-    invert_copy_mark();
-    copy_mode = 1;
-}
-
-static void paste() {
-    char y;
-    if (CLIP_X1 == 0xff) return;
-
-    // Pastes region.
-    for (y = CLIP_Y1; y <= CLIP_Y2; ++y) {
-        const char dst_y = y + cury - CLIP_Y1;
-        char x;
-        if (dst_y >= 25) break;
-        for (x = CLIP_X1; x <= CLIP_X2; ++x) {
-            const char dst_x = x + curx - CLIP_X1;
-            if (dst_x >= 40) break;
-            DISPLAY_BASE[dst_y * 40 + dst_x] = clipboard[y * 40 + x];
-            ((char*)0xd800)[dst_y * 40 + dst_x] = clipboard_color[y * 40 + x];
-        }
-    }
-}
-
 static void pause_one_clock()
 {
     clock_t now = clock();
@@ -362,106 +140,20 @@ static void insert_keyframe()
     --*(char*)0xd020;
 }
 
-/* returns 1 if ch should be stored in stream */
-unsigned char handle(unsigned char ch, char first_keypress) {
-    static char skip_chars;
-    static char rle_mode;
-    static unsigned char rle_char;
-
-    if (skip_chars)
-    {
-        --skip_chars;
-        return 0;
-    }
-
-    switch (rle_mode) {
-        case 1:
-            rle_mode = 2;
-            rle_char = ch;
-            return 0;
-        case 2:
-            rle_mode = 0;
-            while (ch--) handle(rle_char, 1);
-            return 0;
-    }
-
-    if (ch == RLE_MARKER) {
-        rle_mode = 1;
-        return 0;
-    }
-
-    if (copy_mode) {
-        handle_copy(ch);
-        return 1;
-    }
-
-    switch (ch) {
-        case CH_F1: load(); return 0;
-        case CH_F2: flush_rle(); save(); run(); return 0;
-        case CH_F3: ++*(char*)0xd020; break;
-        case CH_F4: ++*(char*)0xd021; break;
-        case CH_F5: start_copy(); break;
-        case CH_F6: paste(); break;
-        case CH_F7: break;
-        case CH_F8: break;
-        case 3: run(); return 0;  /* RUN */
-        case 0x83: return 0;  /* STOP */
-        case 0x13: /* HOME */
-                   if (playback_mode)
-                       skip_chars = 2;
-                   else
-                       insert_keyframe();
-                   return 0;
-        case 0x93: break;  /* CLR */
-        case CH_DEL:
-                   cur_left(0);
-                   emit(' ');
-                   cur_left(0);
-                   break;
-        case CH_ENTER:
-                   curx = 0;
-                   cur_down(0);
-                   break;
-        case CH_CURS_RIGHT: return cur_right(first_keypress);
-        case CH_CURS_DOWN: return cur_down(first_keypress);
-        case CH_CURS_UP: return cur_up(first_keypress);
-        case CH_CURS_LEFT: return cur_left(first_keypress);
-        case 0x12: reverse = 0x80u; break;
-        case 0x92: reverse = 0; break;
-
-                   // Colors.
-        case 0x05: switch_color(COLOR_WHITE); break;
-        case 0x1c: switch_color(COLOR_RED); break;
-        case 0x1e: switch_color(COLOR_GREEN); break;
-        case 0x1f: switch_color(COLOR_BLUE); break;
-        case 0x81: switch_color(COLOR_ORANGE); break;
-        case 0x90: switch_color(COLOR_BLACK); break;
-        case 0x95: switch_color(COLOR_BROWN); break;
-        case 0x96: switch_color(COLOR_LIGHTRED); break;
-        case 0x97: switch_color(COLOR_GRAY1); break;
-        case 0x98: switch_color(COLOR_GRAY2); break;
-        case 0x99: switch_color(COLOR_LIGHTGREEN); break;
-        case 0x9a: switch_color(COLOR_LIGHTBLUE); break;
-        case 0x9b: switch_color(COLOR_GRAY3); break;
-        case 0x9c: switch_color(COLOR_PURPLE); break;
-        case 0x9e: switch_color(COLOR_YELLOW); break;
-        case 0x9f: switch_color(COLOR_CYAN); break;
-        case 0x80 | ' ':
-                   reverse ^= 0x80;
-                   emit(' ');
-                   reverse ^= 0x80;
-                   break;
-        default: emit(ch);
-    }
-    return 1;
-}
-
 static void run() {
     char* ptr = KEYS_START;
     playback_mode = 1;
     anim_reset();
     while (ptr < last_char) {
-        handle(*ptr++, 1);
+        char ch = *ptr;
+        switch (ch) {
+            case 0x13: /* HOME */
+                ptr += 3;  /* skip keyframe */
+                break;
+            default:
+                handle(ch, 1);
+                ++ptr;
+        }
     }
     playback_mode = 0;
 }
@@ -496,8 +188,29 @@ static void editloop(void) {
             unsigned char ch = cgetc();
             unblink();
             hide_cursor();
-            if (handle(ch, first_keypress))
-                store_char(ch);
+            switch (ch) {
+                case CH_F1:
+                    load();
+                    break;
+                case CH_F2:
+                    flush_rle();
+                    save();
+                    run();
+                    break;
+                case 0x83:
+                    break;  /* STOP */
+                case 0x13: /* HOME */
+                    insert_keyframe();
+                    break;
+                case 0x93: break;  /* CLR */
+                case 3:
+                    run();
+                    break;  /* RUN */
+                default:
+                    if (handle(ch, first_keypress))
+                        store_char(ch);
+                    break;
+            }
             show_cursor();
             first_keypress = 0;
             ticks_since_last_key = 0;

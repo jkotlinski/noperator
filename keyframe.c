@@ -25,6 +25,7 @@ THE SOFTWARE. }}} */
 #include <string.h>
 
 #include "disk.h"
+#include "handle.h"
 #include "keybuf.h"
 #include "screen.h"
 
@@ -48,19 +49,14 @@ static char* next_keyframe()
 }
 
 static char behind_speed_buf[20];
-static char curx;
-static char cury;
 
 static void store_screen()
 {
-    curx = wherex();
-    cury = wherey();
     memcpy(behind_speed_buf, (char*)0x400 + 24 * 40, sizeof(behind_speed_buf));
 }
 static void restore_screen()
 {
     memcpy((char*)0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
-    gotoxy(curx, cury);
 }
 
 static void print_speed()
@@ -91,7 +87,7 @@ static void goto_next_keyframe()
                 print_speed();
                 return;  /* Done! */
             default:
-                cputc(ch);
+                handle(ch, 1);
                 ++read_pos;
         }
     }
