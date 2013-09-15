@@ -113,7 +113,6 @@ static void run();
 
 static void save() {
     prompt_save_anim(last_char - KEYS_START);
-    run();
 }
 
 static void load()
@@ -121,7 +120,6 @@ static void load()
     unsigned int read = prompt_load_anim();
     if (read)
         last_char = KEYS_START + read;
-    run();
 }
 
 static void pause_one_clock()
@@ -136,6 +134,7 @@ static void insert_keyframe()
     store_char(0x13);  /* HOME */
     store_char(KEYFRAME_SPEED_NONE);
     store_char(KEYFRAME_SPEED_NONE >> 8);
+    pause_one_clock();
     pause_one_clock();
     --*(char*)0xd020;
 }
@@ -191,6 +190,7 @@ static void editloop(void) {
             switch (ch) {
                 case CH_F1:
                     load();
+                    run();
                     break;
                 case CH_F2:
                     flush_rle();

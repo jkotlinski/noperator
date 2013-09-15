@@ -27,7 +27,7 @@ THE SOFTWARE. }}} */
 void loader_test() {
     anim_reset();
     loader_init();
-    loader_open("rle5");
+    loader_open("k");
     loader_getc();  /* skip address */
     while (1) {
         int ch = loader_getc();
