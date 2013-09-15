@@ -38,7 +38,7 @@ static char* read_pos = KEYS_START;
 
 static char* next_keyframe()
 {
-    char *pos = read_pos + 2;
+    char *pos = read_pos + 3;
     for (;;) {
         if (pos >= last_char)
             return last_char;
@@ -49,7 +49,7 @@ static char* next_keyframe()
     }
 }
 
-static char behind_speed_buf[20];
+static char behind_speed_buf[25];
 
 static void store_screen()
 {
@@ -63,9 +63,25 @@ static void restore_screen()
 static void print_fract(unsigned int number)
 {
     // Prints 4.12 number.
-    printf("%u", number >> 12);
-    number -= (number >> 12) << 12;
-    printf(".%03x", number);
+    printf("%u.%03x",
+            (int)(number / (1 << 12)),
+            (int)(number % (1 << 12)));
+}
+
+static unsigned int keys_in_segment()
+{
+    /* Keys in segment, excluding keyframe. */
+    return next_keyframe() - read_pos - 3;
+}
+
+static void print_beats(unsigned int speed)
+{
+    unsigned long keys = keys_in_segment();
+    keys <<= 12;
+    keys /= speed;
+    printf("%u.%u",
+            (unsigned int)(keys / 24),
+            (unsigned int)(keys % 24));
 }
 
 static void print_speed()
@@ -83,6 +99,8 @@ static void print_speed()
     } else {
         cputs("spd:");
         print_fract(speed);
+        cputs(" bts:");
+        print_beats(speed);
     }
 }
 
@@ -162,19 +180,13 @@ static unsigned char read_digits() {
     return number;
 }
 
-static unsigned int keys_in_segment()
-{
-    /* Keys in segment, excluding keyframe. */
-    return next_keyframe() - read_pos - 3;
-}
-
 static void calc_speed(unsigned char beats)
 {
     /* speed = (keys << 12) / ticks) */
     unsigned long speed = keys_in_segment();
     speed <<= 12;
     speed /= 24 * beats;
-    if (speed >= (1 << 16)) return;
+    if (speed >= 0x10000u) return;
     *(unsigned int*)(read_pos + 1) = speed;
 }
 
@@ -182,7 +194,7 @@ static void enter_beats()
 {
     unsigned char beats;
     gotoxy(0, 24);
-    cputs("                 ");
+    cputs("                         ");
     gotoxy(0, 24);
     cputs("bts:");
     revers(1);
