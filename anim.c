@@ -68,11 +68,9 @@ void anim_reset() {
     init_screen();
 }
 
-void __fastcall__ startirq(void);
 static void init(void) {
     anim_reset();
     show_cursor();
-    // startirq();
 }
 
 // -----

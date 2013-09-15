@@ -26,6 +26,7 @@ THE SOFTWARE. }}} */
 
 #include "disk.h"
 #include "handle.h"
+#include "irq.h"
 #include "keybuf.h"
 #include "rledec.h"
 #include "screen.h"
@@ -259,6 +260,8 @@ void keyframe_editor(void)
     }
 
     init_screen();
+
+    startirq();
 
     editloop();
 }

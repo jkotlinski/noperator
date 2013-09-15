@@ -40,7 +40,7 @@ _startirq:
     sta $d01a
 
 	; Set raster pos for IRQ.
-    lda #$a0
+    lda #$ff
     sta $d012
 	cli
     rts
