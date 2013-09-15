@@ -19,6 +19,10 @@
 ;THE SOFTWARE. }}}
 
 .export _startirq
+.export _ticks
+
+_ticks:
+    .byte 0
 
 _startirq:
     sei
@@ -46,8 +50,7 @@ _startirq:
     rts
 
 irq1:
-	inc	$d020
-    dec $d020
+    inc _ticks
 ret:
 	asl $d019 ; Acknowledge interrupt by clearing VIC interrupt flag.
 	jmp $ea31 ; Jump to standard kernel IRQ service.
