@@ -88,7 +88,7 @@ static unsigned int keys_in_segment()
     const char* pos = read_pos + 3;
     unsigned int count = 0;
     while (pos < end) {
-        count += rledec(*pos);
+        count += rle_dec(*pos);
         ++pos;
     }
     return count;

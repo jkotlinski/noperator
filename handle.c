@@ -311,9 +311,9 @@ unsigned char handle(unsigned char ch, char first_keypress) {
 
 void handle_rle(unsigned char ch)
 {
-    unsigned char i = rledec(ch);
+    unsigned char i = rle_dec(ch);
     while (i--)
-        handle(rlechar(), 1);
+        handle(rle_char(), 1);
 }
 
 unsigned char curx()
