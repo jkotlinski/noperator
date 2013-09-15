@@ -27,6 +27,7 @@ THE SOFTWARE. }}} */
 #include "disk.h"
 #include "handle.h"
 #include "keybuf.h"
+#include "rledec.h"
 #include "screen.h"
 
 #include <stdio.h>
@@ -71,7 +72,14 @@ static void print_fract(unsigned int number)
 static unsigned int keys_in_segment()
 {
     /* Keys in segment, excluding keyframe. */
-    return next_keyframe() - read_pos - 3;
+    const char* const end = next_keyframe();
+    const char* pos = read_pos + 3;
+    unsigned int count = 0;
+    while (pos < end) {
+        count += rledec(*pos);
+        ++pos;
+    }
+    return count;
 }
 
 static void print_beats(unsigned int speed)
