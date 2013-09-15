@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
 unsigned char handle(unsigned char ch, char first_keypress);
+void handle_rle(unsigned char ch);
 
 extern char playback_mode;  // if set, some UI operations will be disabled
 

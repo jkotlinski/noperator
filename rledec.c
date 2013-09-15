@@ -18,10 +18,33 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
-#ifndef ANIM_H
-#define ANIM_H
+#define RLE_MARKER 0
 
-void anim_editor();
-void anim_reset();
+static unsigned char rle_char;
 
-#endif  /* ANIM_H */
+unsigned char rlechar()
+{
+    return rle_char;
+}
+
+unsigned char rledec(unsigned char ch)
+{
+    static char rle_mode;
+    switch (rle_mode) {
+        case 0:
+            if (ch == RLE_MARKER) {
+                rle_mode = 1;
+                return 0;
+            }
+            /* Not RLE. */
+            rle_char = ch;
+            return 1;
+        case 1:
+            rle_mode = 2;
+            rle_char = ch;
+            return 0;
+        case 2:
+            rle_mode = 0;
+            return ch;
+    }
+}

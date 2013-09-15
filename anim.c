@@ -150,7 +150,7 @@ static void run() {
                 ptr += 3;  /* skip keyframe */
                 break;
             default:
-                handle(ch, 1);
+                handle_rle(ch);
                 ++ptr;
         }
     }

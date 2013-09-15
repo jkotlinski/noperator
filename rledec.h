@@ -18,10 +18,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
-#ifndef ANIM_H
-#define ANIM_H
-
-void anim_editor();
-void anim_reset();
-
-#endif  /* ANIM_H */
+/* Returns number of bytes that are available for
+ * consumption through rlechar() after decoding ch.
+ */
+unsigned char rledec(unsigned char ch);
+unsigned char rlechar();

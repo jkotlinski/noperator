@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
 #include "handle.h"
+#include "rledec.h"
 
 #include <conio.h>
 #include <string.h>
@@ -253,25 +254,6 @@ static void emit(unsigned char ch) {
 
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
-    static char rle_mode;
-    static unsigned char rle_char;
-
-    switch (rle_mode) {
-        case 1:
-            rle_mode = 2;
-            rle_char = ch;
-            return 0;
-        case 2:
-            rle_mode = 0;
-            while (ch--) handle(rle_char, 1);
-            return 0;
-    }
-
-    if (ch == RLE_MARKER) {
-        rle_mode = 1;
-        return 0;
-    }
-
     if (copy_mode) {
         handle_copy(ch);
         return 1;
@@ -325,6 +307,13 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         default: emit(ch);
     }
     return 1;
+}
+
+void handle_rle(unsigned char ch)
+{
+    unsigned char i = rledec(ch);
+    while (i--)
+        handle(rlechar(), 1);
 }
 
 unsigned char curx()

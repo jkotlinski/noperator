@@ -117,7 +117,7 @@ static void goto_next_keyframe()
                 print_speed();
                 return;  /* Done! */
             default:
-                handle(ch, 1);
+                handle_rle(ch);
                 ++read_pos;
         }
     }
@@ -156,7 +156,7 @@ static void goto_prev_keyframe()
         if (ch == CH_HOME) {
             read_pos += 3;
         } else {
-            handle(ch, 1);
+            handle_rle(ch);
             ++read_pos;
         }
     }

@@ -21,6 +21,7 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 
 #include "anim.h"
+#include "handle.h"
 #include "keyframe.h"
 #include "myload.h"
 
@@ -32,7 +33,7 @@ void loader_test() {
     while (1) {
         int ch = loader_getc();
         if (ch == -1) break;
-        handle(ch, 1);
+        handle_rle(ch);
     }
 }
 
