@@ -53,11 +53,14 @@ static char behind_speed_buf[30];
 
 static void store_screen()
 {
-    memcpy(behind_speed_buf, (char*)0x400 + 24 * 40, sizeof(behind_speed_buf));
+    if (!*behind_speed_buf)
+        memcpy(behind_speed_buf, (char*)0x400 + 24 * 40, sizeof(behind_speed_buf));
 }
 static void restore_screen()
 {
-    memcpy((char*)0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
+    if (*behind_speed_buf)
+        memcpy((char*)0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
+    *behind_speed_buf = '\0';
 }
 
 static void print_dec(unsigned int number)
@@ -228,7 +231,25 @@ static void enter_beats()
     print_speed();
 }
 
-
+static void goto_next_key()
+{
+    if (read_pos == last_char) return;
+    restore_screen();
+    switch (*read_pos) {
+        case CH_HOME:  /* Keyframe */
+            read_pos += 3;
+            break;
+        case RLE_MARKER:
+            handle_rle(*read_pos++);
+            handle_rle(*read_pos++);
+            /* Fall through! */
+        default:
+            handle_rle(*read_pos++);
+    }
+    if (*read_pos == CH_HOME) {
+        print_speed();
+    }
+}
 
 static void editloop()
 {
@@ -241,14 +262,25 @@ static void editloop()
                 init_screen();
                 print_speed();
                 break;
-            case CH_CURS_RIGHT:
+            case ' ':
                 goto_next_keyframe();
                 break;
-            case CH_CURS_LEFT:
+            case ' ' | 0x80:
                 goto_prev_keyframe();
                 break;
             case 'b':
-                enter_beats();
+                if (*read_pos == CH_HOME)
+                    enter_beats();
+                break;
+            case CH_CURS_RIGHT:
+                goto_next_key();
+                break;
+            case CH_CURS_LEFT:
+                {
+                    char i = 10;
+                    while (--i)
+                        goto_next_key();
+                }
                 break;
         }
     }
