@@ -251,6 +251,25 @@ static void goto_next_key()
     }
 }
 
+static void delete_keyframe()
+{
+    if (*read_pos != CH_HOME) return;
+    last_char -= 3;
+    memmove(read_pos, read_pos + 3, last_char - read_pos);
+    restore_screen();
+}
+
+static void insert_keyframe()
+{
+    if (*read_pos == CH_HOME) return;
+    memmove(read_pos + 3, read_pos, last_char - read_pos);
+    read_pos[0] = CH_HOME;
+    read_pos[1] = KEYFRAME_SPEED_NONE;
+    read_pos[2] = KEYFRAME_SPEED_NONE;
+    last_char += 3;
+    print_speed();
+}
+
 static void editloop()
 {
     print_speed();
@@ -281,6 +300,12 @@ static void editloop()
                     while (--i)
                         goto_next_key();
                 }
+                break;
+            case CH_DEL:
+                delete_keyframe();
+                break;
+            case CH_INS:
+                insert_keyframe();
                 break;
         }
     }
