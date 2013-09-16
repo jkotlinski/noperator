@@ -28,12 +28,12 @@ THE SOFTWARE. }}} */
 #include "handle.h"
 #include "irq.h"
 #include "keybuf.h"
+#include "keys.h"
 #include "rledec.h"
 #include "screen.h"
 
 static char* read_pos = KEYS_START;
 
-#define CH_HOME 0x13
 #define RLE_MARKER 0
 
 static char* next_keyframe()

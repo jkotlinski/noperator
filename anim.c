@@ -27,6 +27,7 @@ THE SOFTWARE. }}} */
 #include "handle.h"
 #include "keybuf.h"
 #include "keyframe.h"
+#include "keys.h"
 #include "myload.h"
 #include "screen.h"
 
@@ -195,15 +196,16 @@ static void editloop(void) {
                     save();
                     run();
                     break;
-                case 0x83:
-                    break;  /* STOP */
-                case 0x13: /* HOME */
+                case CH_STOP:
+                    break;
+                case CH_HOME:
                     insert_keyframe();
                     break;
-                case 0x93: break;  /* CLR */
-                case 3:
+                case CH_CLR:
+                    break;
+                case CH_RUN:
                     run();
-                    break;  /* RUN */
+                    break;
                 default:
                     if (handle(ch, first_keypress))
                         store_char(ch);

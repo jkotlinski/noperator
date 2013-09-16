@@ -19,10 +19,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
 #include "handle.h"
-#include "rledec.h"
 
 #include <conio.h>
 #include <string.h>
+
+#include "keys.h"
+#include "rledec.h"
 
 #define RLE_MARKER 0
 
@@ -279,8 +281,8 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case CH_CURS_DOWN: return cur_down(first_keypress);
         case CH_CURS_UP: return cur_up(first_keypress);
         case CH_CURS_LEFT: return cur_left(first_keypress);
-        case 0x12: reverse = 0x80u; break;
-        case 0x92: reverse = 0; break;
+        case CH_RVS_ON: reverse = 0x80u; break;
+        case CH_RVS_OFF: reverse = 0; break;
 
         /* Colors. */
         case 0x05: switch_color(COLOR_WHITE); break;
