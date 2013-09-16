@@ -22,6 +22,6 @@ THE SOFTWARE. }}} */
 #define DISK_H
 
 unsigned int prompt_load_anim(void);
-void prompt_save_anim(unsigned int size);
+void prompt_save_anim();
 
 #endif  /* DISK_H */

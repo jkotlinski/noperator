@@ -77,13 +77,14 @@ unsigned int prompt_load_anim(void)
     return read;
 }
 
-void prompt_save_anim(unsigned int size)
+void prompt_save_anim()
 {
     char buf[20];
     clrscr();
     textcolor(COLOR_WHITE);
     cputs("save> ");
     if (!mygets(buf)) return;
-    cputs(cbm_save(buf, 8, KEYS_START, size) ? " err" : " ok");
+    cputs(cbm_save(buf, 8, KEYS_START, last_char - KEYS_START)
+            ? " err" : " ok");
     cgetc();
 }

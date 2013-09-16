@@ -228,12 +228,19 @@ static void enter_beats()
     print_speed();
 }
 
+
+
 static void editloop()
 {
     print_speed();
     for (;;) {
         switch (cgetc())
         {
+            case 's':
+                prompt_save_anim();
+                init_screen();
+                print_speed();
+                break;
             case CH_CURS_RIGHT:
                 goto_next_keyframe();
                 break;
