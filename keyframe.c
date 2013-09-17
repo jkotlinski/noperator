@@ -276,11 +276,12 @@ static void play_current_segment()
 {
     unsigned int acc = 0;
     unsigned int speed = *(int*)(read_pos + 1);
-    const char* pos = read_pos + 3;
-    const char* const end = next_keyframe();
+    char* const end = next_keyframe();
     unsigned char rle_left = 0;
     startirq();
     ticks = 0;
+
+    read_pos += 3;
 
     ++*(char*)0xd020;
     while (1)
@@ -297,12 +298,13 @@ static void play_current_segment()
                 handle(rle_char(), 1);
                 --rle_left;
             } else while (1) {
-                if (pos == end) {
+                if (read_pos == end) {
                     --*(char*)0xd020;
+                    goto_prev_keyframe();
                     return;
                 }
-                rle_left = rle_dec(*pos);
-                ++pos;
+                rle_left = rle_dec(*read_pos);
+                ++read_pos;
                 if (rle_left) {
                     handle(rle_char(), 1);
                     --rle_left;
@@ -325,20 +327,20 @@ static void editloop()
                 init_screen();
                 print_speed();
                 break;
-            case ' ':
+            case CH_CURS_RIGHT:
                 goto_next_keyframe();
                 break;
-            case ' ' | 0x80:
+            case CH_CURS_LEFT:
                 goto_prev_keyframe();
                 break;
             case 'b':
                 if (*read_pos == CH_HOME)
                     enter_beats();
                 break;
-            case CH_CURS_RIGHT:
+            case ' ':
                 goto_next_key();
                 break;
-            case CH_CURS_LEFT:
+            case ' ' | 0x80:
                 {
                     char i = 10;
                     while (--i)
