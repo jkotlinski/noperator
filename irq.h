@@ -20,4 +20,4 @@ THE SOFTWARE. }}} */
 
 void __fastcall__ startirq(void);
 
-extern unsigned char ticks;
+extern volatile unsigned char ticks;

@@ -111,6 +111,8 @@ static void print_speed()
 {
     unsigned int speed = *(int*)(read_pos + 1);
 
+    if (*read_pos != CH_HOME) return;
+
     store_screen();
 
     gotoxy(0, 24);
@@ -270,6 +272,48 @@ static void insert_keyframe()
     print_speed();
 }
 
+static void play_current_segment()
+{
+    unsigned int acc = 0;
+    unsigned int speed = *(int*)(read_pos + 1);
+    const char* pos = read_pos + 3;
+    const char* const end = next_keyframe();
+    unsigned char rle_left = 0;
+    startirq();
+    ticks = 0;
+
+    ++*(char*)0xd020;
+    while (1)
+    {
+        /* Wait for tick. */
+        --*(char*)0xd020;
+        while (ticks == 0);
+        ++*(char*)0xd020;
+        --ticks;
+
+        acc += speed;
+        while (acc >= (1 << 12)) {
+            if (rle_left) {
+                handle(rle_char(), 1);
+                --rle_left;
+            } else while (1) {
+                if (pos == end) {
+                    --*(char*)0xd020;
+                    return;
+                }
+                rle_left = rle_dec(*pos);
+                ++pos;
+                if (rle_left) {
+                    handle(rle_char(), 1);
+                    --rle_left;
+                    break;
+                }
+            }
+            acc -= (1 << 12);
+        }
+    }
+}
+
 static void editloop()
 {
     print_speed();
@@ -307,6 +351,9 @@ static void editloop()
             case CH_INS:
                 insert_keyframe();
                 break;
+            case CH_RUN:
+                play_current_segment();
+                break;
         }
     }
 }
@@ -324,8 +371,6 @@ void keyframe_editor(void)
     }
 
     init_screen();
-
-    startirq();
 
     editloop();
 }
