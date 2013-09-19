@@ -304,9 +304,9 @@ static void play_current_segment()
                 --rle_left;
             } else while (1) {
                 if (read_pos == end) {
+                    stopirq();
                     --*(char*)0xd020;
                     goto_prev_keyframe();
-                    stopirq();
                     return;
                 }
                 rle_left = rle_dec(*read_pos);

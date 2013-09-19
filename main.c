@@ -57,7 +57,10 @@ void main_menu(void) {
     cputsxy(0, 0, "movie noperator");
     cputsxy(0, 2, "choose editor:");
     cputsxy(0, 4, "[a]nimation");
-    cputsxy(0, 5, "[k]eyframe");
+    if (ticks_per_step) {
+        /* Keyframe editor only makes sense if music is loaded. */
+        cputsxy(0, 5, "[k]eyframe");
+    }
     cputsxy(0, 6, "[m]usic");
     cputsxy(0, 8, "[t]est");
     for (;;) {
