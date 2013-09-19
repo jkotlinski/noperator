@@ -19,9 +19,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
 #include <conio.h>
+#include <string.h>
 
 #include "anim.h"
+#include "disk.h"
 #include "handle.h"
+#include "keybuf.h"
 #include "keyframe.h"
 #include "myload.h"
 
@@ -37,6 +40,14 @@ void loader_test() {
     }
 }
 
+static void load_music()
+{
+    prompt_load_anim();
+    memcpy((char*)0x1000, KEYS_START, 0x2000);
+    cputs(" ok ");
+    cgetc();
+}
+
 void movie_editor(void) {}
 
 void main_menu(void) {
@@ -46,14 +57,14 @@ void main_menu(void) {
     cputsxy(0, 2, "choose editor:");
     cputsxy(0, 4, "[a]nimation");
     cputsxy(0, 5, "[k]eyframe");
-    cputsxy(0, 6, "[m]ovie");
+    cputsxy(0, 6, "[m]usic");
     cputsxy(0, 8, "[t]est");
     for (;;) {
         switch (cgetc()) {
             case 'a': anim_editor(); break;
             case 'k': keyframe_editor(); break;
-            case 'm': movie_editor(); break;
-            case 't': loader_test(); break;
+            case 'm': load_music(); main_menu();
+            case 't': loader_test(); main_menu(); break;
         }
     }
 }
