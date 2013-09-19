@@ -33,31 +33,6 @@ THE SOFTWARE. }}} */
 
 #define DISPLAY_BASE ((char*)0x400)
 
-unsigned char hidden_color;
-unsigned char hidden_char;
-
-static unsigned int offset() {
-    return cury() * 40 + curx();
-}
-static char* colptr() {
-    return (unsigned char*)(0xd800 + offset());
-}
-static char* charptr() {
-    return (unsigned char*)(0x400 + offset());
-}
-
-static void hide_cursor(void) {
-    *charptr() = hidden_char;
-    *colptr() = hidden_color;
-}
-
-static void show_cursor(void) {
-    hidden_char = *charptr();
-    hidden_color = *colptr();
-    *colptr() = color;
-    *charptr() = *charptr() ^ 0x80u;
-}
-
 unsigned char run_length;
 char prev_ch;
 

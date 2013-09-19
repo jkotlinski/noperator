@@ -331,3 +331,30 @@ void cursor_home()
     x = 0;
     y = 0;
 }
+
+// -----
+
+static unsigned int offset() {
+    return cury() * 40 + curx();
+}
+static char* colptr() {
+    return (unsigned char*)(0xd800 + offset());
+}
+static char* charptr() {
+    return (unsigned char*)(0x400 + offset());
+}
+
+static unsigned char hidden_color;
+static unsigned char hidden_char;
+
+void hide_cursor(void) {
+    *charptr() = hidden_char;
+    *colptr() = hidden_color;
+}
+
+void show_cursor(void) {
+    hidden_char = *charptr();
+    hidden_color = *colptr();
+    *colptr() = color;
+    *charptr() = *charptr() ^ 0x80u;
+}

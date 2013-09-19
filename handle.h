@@ -27,3 +27,6 @@ void cursor_home();
 unsigned char curx();
 unsigned char cury();
 extern unsigned char color;
+
+void show_cursor();
+void hide_cursor();

@@ -284,6 +284,7 @@ static void play_current_segment()
     unsigned char rle_left = 0;
     init_music();
     startirq();
+
     ticks = 0;
 
     read_pos += 3;
@@ -293,7 +294,9 @@ static void play_current_segment()
     {
         /* Wait for tick. */
         --*(char*)0xd020;
+        show_cursor();
         while (ticks == 0);
+        hide_cursor();
         ++*(char*)0xd020;
         --ticks;
 
