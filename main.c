@@ -19,33 +19,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
 #include <conio.h>
-#include <string.h>
 
 #include "anim.h"
-#include "handle.h"
-#include "keybuf.h"
 #include "keyframe.h"
-#include "keys.h"
 #include "movie.h"
 #include "music.h"
-#include "myload.h"
-
-void loader_test() {
-    anim_reset();
-    loader_init();
-    loader_open("smile2");
-    loader_getc();  /* skip address */
-    while (1) {
-        int ch = loader_getc();
-        if (ch == -1) break;
-        if (ch == CH_HOME) {
-            loader_getc();
-            loader_getc();
-        } else {
-            handle_rle(ch);
-        }
-    }
-}
 
 void main_menu(void) {
     anim_reset();
@@ -70,8 +48,6 @@ void main_menu(void) {
 }
 
 void main(void) {
-    /* asm("sei");
-    *(unsigned int**)0x318 = (unsigned int*)0x80d;
-    asm("cli"); */
+    play_movie();
     main_menu();
 }

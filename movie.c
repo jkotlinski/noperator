@@ -23,8 +23,12 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 #include <string.h>
 
+#include "anim.h"
 #include "disk.h"
+#include "handle.h"
+#include "keys.h"
 #include "music.h"
+#include "fastload.h"
 
 static struct Movie
 {
@@ -65,5 +69,22 @@ void load_music()
     }
     cputs(" ticks per step? (1-9)");
     ticks_per_step = cgetc() - '0';
+}
+
+void play_movie() {
+    anim_reset();
+    loader_init();
+    loader_open("smile2");
+    loader_getc();  /* skip address */
+    while (1) {
+        int ch = loader_getc();
+        if (ch == -1) break;
+        if (ch == CH_HOME) {
+            loader_getc();
+            loader_getc();
+        } else {
+            handle_rle(ch);
+        }
+    }
 }
 

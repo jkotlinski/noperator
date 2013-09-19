@@ -25,4 +25,6 @@ void write_movie();
 
 void load_music();
 
+void play_movie();
+
 #endif  /* MOVIE_H */

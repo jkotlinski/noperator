@@ -28,7 +28,7 @@ THE SOFTWARE. }}} */
 #include "keybuf.h"
 #include "keyframe.h"
 #include "keys.h"
-#include "myload.h"
+#include "fastload.h"
 #include "screen.h"
 
 #define DISPLAY_BASE ((char*)0x400)
