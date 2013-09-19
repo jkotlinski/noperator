@@ -37,7 +37,8 @@ static char* read_pos = KEYS_START;
 
 #define RLE_MARKER 0
 
-#define TICKS_PER_BEAT 24
+#define STEPS_PER_BEAT 4
+#define TICKS_PER_BEAT (STEPS_PER_BEAT * ticks_per_step)
 
 static char* next_keyframe()
 {
