@@ -51,6 +51,15 @@ _startirq:
 
 irq1:
     inc _ticks
+
+    ; music
+    lda $1003
+    cmp #$4c
+    bne ret
+    lda #0
+    tay
+    jsr $1003
+
 ret:
 	asl $d019 ; Acknowledge interrupt by clearing VIC interrupt flag.
 	jmp $ea31 ; Jump to standard kernel IRQ service.
