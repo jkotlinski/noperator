@@ -22,11 +22,11 @@ THE SOFTWARE. }}} */
 #include <string.h>
 
 #include "anim.h"
-#include "disk.h"
 #include "handle.h"
 #include "keybuf.h"
 #include "keyframe.h"
 #include "keys.h"
+#include "movie.h"
 #include "music.h"
 #include "myload.h"
 
@@ -46,16 +46,6 @@ void loader_test() {
         }
     }
 }
-
-static void load_music()
-{
-    prompt_load_anim();
-    memcpy((char*)0x1000, KEYS_START, 0x2000);
-    cputs(" ticks per step? (1-9)");
-    ticks_per_step = cgetc() - '0';
-}
-
-void movie_editor(void) {}
 
 void main_menu(void) {
     anim_reset();

@@ -24,7 +24,7 @@ THE SOFTWARE. }}} */
 
 #include "keybuf.h"
 
-static char mygets(char* buf) {
+char mygets(char* buf) {
     unsigned char i = 0;
     while (1) {
         const char ch = cgetc();
@@ -47,7 +47,7 @@ static char mygets(char* buf) {
     }
 }
 
-static void ls() {
+void ls() {
     struct cbm_dirent direntry;
     cbm_opendir(1, 8);
     while (!cbm_readdir(1, &direntry)) {

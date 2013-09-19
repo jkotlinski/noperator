@@ -18,12 +18,41 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
-#ifndef DISK_H
-#define DISK_H
+#include "movie.h"
 
-char mygets(char* buf);
-void ls();
-unsigned int prompt_load_anim(void);
-void prompt_save_anim();
+#include <conio.h>
+#include <string.h>
 
-#endif  /* DISK_H */
+#include "disk.h"
+#include "music.h"
+
+char music_path[20];
+
+void write_movie()
+{
+    char buf[20];
+    clrscr();
+    textcolor(COLOR_WHITE);
+    ls();
+    cputs("animation> ");
+    while (!mygets(buf));
+}
+
+void load_music()
+{
+    unsigned int read;
+    clrscr();
+    textcolor(COLOR_WHITE);
+    ls();
+    cputs("music> ");
+    if (!mygets(music_path)) return;
+    read = cbm_load(music_path, 8, (void*)0x1000);
+    if (read == 0) return;
+    if (read > 0x2000) {
+        cputs("too big:(");
+        while (1) ++*(char*)0xd020;
+    }
+    cputs(" ticks per step? (1-9)");
+    ticks_per_step = cgetc() - '0';
+}
+

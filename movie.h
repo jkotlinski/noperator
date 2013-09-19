@@ -18,12 +18,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
-#ifndef DISK_H
-#define DISK_H
+#ifndef MOVIE_H
+#define MOVIE_H
 
-char mygets(char* buf);
-void ls();
-unsigned int prompt_load_anim(void);
-void prompt_save_anim();
+void write_movie();
 
-#endif  /* DISK_H */
+void load_music();
+
+#endif  /* MOVIE_H */
