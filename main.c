@@ -26,18 +26,24 @@ THE SOFTWARE. }}} */
 #include "handle.h"
 #include "keybuf.h"
 #include "keyframe.h"
+#include "keys.h"
 #include "music.h"
 #include "myload.h"
 
 void loader_test() {
     anim_reset();
     loader_init();
-    loader_open("k");
+    loader_open("smile2");
     loader_getc();  /* skip address */
     while (1) {
         int ch = loader_getc();
         if (ch == -1) break;
-        handle_rle(ch);
+        if (ch == CH_HOME) {
+            loader_getc();
+            loader_getc();
+        } else {
+            handle_rle(ch);
+        }
     }
 }
 
@@ -57,11 +63,11 @@ void main_menu(void) {
     cputsxy(0, 0, "movie noperator");
     cputsxy(0, 2, "choose editor:");
     cputsxy(0, 4, "[a]nimation");
+    cputsxy(0, 5, "[m]usic select");
     if (ticks_per_step) {
         /* Keyframe editor only makes sense if music is loaded. */
-        cputsxy(0, 5, "[k]eyframe");
+        cputsxy(0, 6, "[k]eyframe");
     }
-    cputsxy(0, 6, "[m]usic");
     cputsxy(0, 8, "[t]est");
     for (;;) {
         switch (cgetc()) {
