@@ -19,5 +19,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
 void __fastcall__ startirq(void);
+void __fastcall__ stopirq(void);
 
 extern volatile unsigned char ticks;

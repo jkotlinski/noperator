@@ -26,7 +26,6 @@ THE SOFTWARE. }}} */
 #include "handle.h"
 #include "keybuf.h"
 #include "keyframe.h"
-#include "music.h"
 #include "myload.h"
 
 void loader_test() {
@@ -45,7 +44,6 @@ static void load_music()
 {
     prompt_load_anim();
     memcpy((char*)0x1000, KEYS_START, 0x2000);
-    init_music();
     cputs(" ok ");
     cgetc();
 }

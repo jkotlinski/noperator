@@ -29,12 +29,15 @@ THE SOFTWARE. }}} */
 #include "irq.h"
 #include "keybuf.h"
 #include "keys.h"
+#include "music.h"
 #include "rledec.h"
 #include "screen.h"
 
 static char* read_pos = KEYS_START;
 
 #define RLE_MARKER 0
+
+#define TICKS_PER_BEAT 24
 
 static char* next_keyframe()
 {
@@ -102,9 +105,9 @@ static void print_beats(unsigned int speed)
     unsigned long keys = keys_in_segment();
     keys <<= 12;
     keys /= speed;
-    print_dec(keys / 24);
+    print_dec(keys / TICKS_PER_BEAT);
     cputc('.');
-    print_dec(keys % 24);
+    print_dec(keys % TICKS_PER_BEAT);
 }
 
 static void print_speed()
@@ -211,7 +214,7 @@ static void calc_speed(unsigned char beats)
     /* speed = (keys << 12) / ticks) */
     unsigned long speed = keys_in_segment();
     speed <<= 12;
-    speed /= 24 * beats;
+    speed /= TICKS_PER_BEAT * beats;
     if (speed >= 0x10000u) return;
     *(unsigned int*)(read_pos + 1) = speed;
 }
@@ -274,10 +277,11 @@ static void insert_keyframe()
 
 static void play_current_segment()
 {
-    unsigned int acc = 0;
+    unsigned int acc = 1 << 12;
     unsigned int speed = *(int*)(read_pos + 1);
     char* const end = next_keyframe();
     unsigned char rle_left = 0;
+    init_music();
     startirq();
     ticks = 0;
 
@@ -301,6 +305,7 @@ static void play_current_segment()
                 if (read_pos == end) {
                     --*(char*)0xd020;
                     goto_prev_keyframe();
+                    stopirq();
                     return;
                 }
                 rle_left = rle_dec(*read_pos);

@@ -19,10 +19,14 @@
 ;THE SOFTWARE. }}}
 
 .export _startirq
+.export _stopirq
 .export _ticks
 
 _ticks:
     .byte 0
+
+playing:
+    .byte 1
 
 _startirq:
     sei
@@ -42,6 +46,7 @@ _startirq:
 	; Enable raster interrupt from VIC.
     lda #$01
     sta $d01a
+    sta playing
 
 	; Set raster pos for IRQ.
     lda #$ff
@@ -50,6 +55,9 @@ _startirq:
     rts
 
 irq1:
+    lda playing
+    beq ret
+
     inc _ticks
 
     ; music
@@ -59,7 +67,14 @@ irq1:
     lda #0
     tay
     jsr $1003
-
 ret:
 	asl $d019 ; Acknowledge interrupt by clearing VIC interrupt flag.
 	jmp $ea31 ; Jump to standard kernel IRQ service.
+
+_stopirq:
+    lda #0
+    sta playing
+    sta $d404 ; turn off SID
+    sta $d404 + 7
+    sta $d404 + 14
+    rts
