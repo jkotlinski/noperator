@@ -26,16 +26,27 @@ THE SOFTWARE. }}} */
 #include "disk.h"
 #include "music.h"
 
-char music_path[20];
+static struct Movie
+{
+    char music_path[16];
+    char ticks_per_step;
+    char anim_path[16];
+};
+static struct Movie movie;
 
 void write_movie()
 {
-    char buf[20];
     clrscr();
     textcolor(COLOR_WHITE);
     ls();
-    cputs("animation> ");
-    while (!mygets(buf));
+    cputs("anim> ");
+    while (!mygets(movie.anim_path));
+    movie.ticks_per_step = ticks_per_step;
+    cbm_open(1, 8, 15, "s:movie");  /* scratch */
+    cbm_close(1);
+    cbm_save("movie", 8, &movie, sizeof(movie));
+    cputs(" ok");
+    while (1) ++*(char*)0xd020;
 }
 
 void load_music()
@@ -45,8 +56,8 @@ void load_music()
     textcolor(COLOR_WHITE);
     ls();
     cputs("music> ");
-    if (!mygets(music_path)) return;
-    read = cbm_load(music_path, 8, (void*)0x1000);
+    if (!mygets(movie.music_path)) return;
+    read = cbm_load(movie.music_path, 8, (void*)0x1000);
     if (read == 0) return;
     if (read > 0x2000) {
         cputs("too big:(");

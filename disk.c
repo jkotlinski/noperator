@@ -62,7 +62,7 @@ void ls() {
 unsigned int prompt_load_anim(void)
 {
     unsigned int read = 0;
-    char buf[20];
+    char buf[16];
     clrscr();
     textcolor(COLOR_WHITE);
     ls();
@@ -79,7 +79,7 @@ unsigned int prompt_load_anim(void)
 
 void prompt_save_anim()
 {
-    char buf[20];
+    char buf[16];
     clrscr();
     textcolor(COLOR_WHITE);
     cputs("save> ");

@@ -56,15 +56,15 @@ void main_menu(void) {
     cputsxy(0, 5, "[m]usic select");
     if (ticks_per_step) {
         /* Keyframe editor only makes sense if music is loaded. */
-        cputsxy(0, 6, "[k]eyframe");
+        cputsxy(0, 6, "[k]eyframe edit");
+        cputsxy(0, 8, "[s]ave demo");
     }
-    cputsxy(0, 8, "[t]est");
     for (;;) {
         switch (cgetc()) {
             case 'a': anim_editor(); break;
             case 'k': keyframe_editor(); break;
             case 'm': load_music(); main_menu();
-            case 't': loader_test(); main_menu(); break;
+            case 's': write_movie(); break;
         }
     }
 }
