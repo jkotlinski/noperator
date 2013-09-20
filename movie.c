@@ -26,6 +26,7 @@ THE SOFTWARE. }}} */
 #include "anim.h"
 #include "disk.h"
 #include "handle.h"
+#include "irq.h"
 #include "keys.h"
 #include "music.h"
 #include "fastload.h"
@@ -72,13 +73,28 @@ void load_music()
 }
 
 void play_movie() {
+    if (cbm_load("movie", 8, &movie) != sizeof(movie))
+        return;
     anim_reset();
+    cbm_load(movie.music_path, 8, (void*)0x1000);
+    init_music();
+    ticks_per_step = movie.ticks_per_step;
     loader_init();
-    loader_open("smile2");
+    loader_open(movie.anim_path);
     loader_getc();  /* skip address */
+
+    ticks = 0;
+    startirq();
     while (1) {
-        int ch = loader_getc();
-        if (ch == -1) break;
+        int ch;
+
+        show_cursor();
+        while (!ticks);
+        hide_cursor();
+        --ticks;
+
+        ch = loader_getc();
+        while (ch == -1);  /* Done! */
         if (ch == CH_HOME) {
             loader_getc();
             loader_getc();
