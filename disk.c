@@ -79,12 +79,16 @@ unsigned int prompt_load_anim(void)
 
 void prompt_save_anim()
 {
-    char buf[16];
+    char buf[18];
     clrscr();
     textcolor(COLOR_WHITE);
     cputs("save> ");
-    if (!mygets(buf)) return;
-    cputs(cbm_save(buf, 8, KEYS_START, last_char - KEYS_START)
+    if (!mygets(buf + 2)) return;
+    buf[0] = 's';
+    buf[1] = ':';
+    cbm_open(1, 8, 15, buf);  /* scratch */
+    cbm_close(1);
+    cputs(cbm_save(buf + 2, 8, KEYS_START, last_char - KEYS_START)
             ? " err" : " ok");
     cgetc();
 }

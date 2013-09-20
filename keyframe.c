@@ -366,14 +366,13 @@ static void editloop()
 
 void keyframe_editor(void)
 {
+    unsigned int read;
     init_screen();
 
-    for (;;) {
-        unsigned int read;
-        if (read = prompt_load_anim()) {
-            last_char = KEYS_START + read;
-            break;
-        }
+    if (read = prompt_load_anim()) {
+        last_char = KEYS_START + read;
+    } else {
+        return;
     }
 
     init_screen();
