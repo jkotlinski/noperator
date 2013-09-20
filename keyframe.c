@@ -327,7 +327,7 @@ static void editloop()
     for (;;) {
         switch (cgetc())
         {
-            case 's':
+            case CH_F2:
                 prompt_save_anim();
                 init_screen();
                 print_speed();
