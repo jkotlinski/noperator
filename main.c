@@ -42,7 +42,7 @@ void main_menu(void) {
             case 'a': anim_editor(); break;
             case 'k': keyframe_editor(); break;
             case 'm': load_music(); main_menu();
-            case 's': write_movie(); break;
+            case 's': write_movie(); main_menu();
         }
     }
 }

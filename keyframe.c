@@ -330,8 +330,7 @@ static void editloop()
             case CH_F2:
                 prompt_save_anim();
                 init_screen();
-                print_speed();
-                break;
+                return;
             case CH_CURS_RIGHT:
                 goto_next_keyframe();
                 break;

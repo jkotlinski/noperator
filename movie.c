@@ -72,7 +72,20 @@ void load_music()
     ticks_per_step = cgetc() - '0';
 }
 
-void play_movie() {
+static void fastload_music()
+{
+    char* ptr = (char*)0x1000;
+    int ch;
+    loader_open(movie.music_path);
+    loader_getc();
+    while ((ch = loader_getc()) != -1) {
+        *ptr = ch;
+        ++ptr;
+    }
+}
+
+void play_movie()
+{
     unsigned int acc = 1 << 12;
     unsigned int speed = 0;
     unsigned char rle_left = 0;
@@ -80,10 +93,10 @@ void play_movie() {
     if (cbm_load("movie", 8, &movie) != sizeof(movie))
         return;
     anim_reset();
-    cbm_load(movie.music_path, 8, (void*)0x1000);
+    loader_init();
+    fastload_music();
     init_music();
     ticks_per_step = movie.ticks_per_step;
-    loader_init();
     loader_open(movie.anim_path);
     loader_getc();  /* skip address */
 
