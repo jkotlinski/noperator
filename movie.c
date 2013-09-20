@@ -45,7 +45,7 @@ void write_movie()
     clrscr();
     textcolor(COLOR_WHITE);
     ls();
-    cputs("anim> ");
+    cputs("select anim> ");
     while (!mygets(movie.anim_path));
     movie.ticks_per_step = ticks_per_step;
     cbm_open(1, 8, 15, "s:movie");  /* scratch */
