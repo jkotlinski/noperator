@@ -40,7 +40,7 @@ void main_menu(void) {
     for (;;) {
         switch (cgetc()) {
             case 'a': anim_editor(); break;
-            case 'k': keyframe_editor(); break;
+            case 'k': keyframe_editor(); main_menu();
             case 'm': load_music(); main_menu();
             case 's': write_movie(); main_menu();
         }
