@@ -289,15 +289,12 @@ static void play_current_segment()
 
     read_pos += 3;
 
-    ++*(char*)0xd020;
     while (1)
     {
         /* Wait for tick. */
-        --*(char*)0xd020;
         show_cursor();
         while (ticks == 0);
         hide_cursor();
-        ++*(char*)0xd020;
         --ticks;
 
         acc += speed;
@@ -308,7 +305,6 @@ static void play_current_segment()
             } else while (1) {
                 if (read_pos == end) {
                     stopirq();
-                    --*(char*)0xd020;
                     goto_prev_keyframe();
                     return;
                 }

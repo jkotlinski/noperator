@@ -25,11 +25,12 @@ THE SOFTWARE. }}} */
 
 #include "anim.h"
 #include "disk.h"
+#include "fastload.h"
 #include "handle.h"
 #include "irq.h"
 #include "keys.h"
 #include "music.h"
-#include "fastload.h"
+#include "rledec.h"
 
 static struct Movie
 {
@@ -50,8 +51,7 @@ void write_movie()
     cbm_open(1, 8, 15, "s:movie");  /* scratch */
     cbm_close(1);
     cbm_save("movie", 8, &movie, sizeof(movie));
-    cputs(" ok");
-    while (1) ++*(char*)0xd020;
+    play_movie();
 }
 
 void load_music()
@@ -73,6 +73,10 @@ void load_music()
 }
 
 void play_movie() {
+    unsigned int acc = 1 << 12;
+    unsigned int speed = 0;
+    unsigned char rle_left = 0;
+
     if (cbm_load("movie", 8, &movie) != sizeof(movie))
         return;
     anim_reset();
@@ -86,20 +90,38 @@ void play_movie() {
     ticks = 0;
     startirq();
     while (1) {
-        int ch;
-
+        /* Wait for tick. */
         show_cursor();
-        while (!ticks);
+        while (ticks == 0);
         hide_cursor();
         --ticks;
 
-        ch = loader_getc();
-        while (ch == -1);  /* Done! */
-        if (ch == CH_HOME) {
-            loader_getc();
-            loader_getc();
-        } else {
-            handle_rle(ch);
+        acc += speed;
+        while (acc >= (1 << 12)) {
+            if (rle_left) {
+                handle(rle_char(), 1);
+                --rle_left;
+            } else while (1) {
+                int ch = loader_getc();
+                switch (ch) {
+                    case -1:  /* Done. */
+                        cgetc();
+                        stopirq();
+                        return;
+                    case CH_HOME:
+                        speed = loader_getc();
+                        speed |= loader_getc() << 8;
+                        break;
+                    default:
+                        rle_left = rle_dec(ch);
+                }
+                if (rle_left) {
+                    handle(rle_char(), 1);
+                    --rle_left;
+                    break;
+                }
+            }
+            acc -= (1 << 12);
         }
     }
 }
