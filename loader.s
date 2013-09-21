@@ -1096,8 +1096,9 @@ drvmain:        cli             ;File loop: Get filename first
 drv_nameloop:   ldy #$08        ;Bit counter
 drv_namebitloop:
 drv_1800ac1:    lda $1800
-                bmi drv_quit    ;Quit if ATN is low
-                and #$05        ;Wait for CLK or DATA going low
+                bpl drv_noquit    ;Quit if ATN is low
+                jmp drv_quit
+drv_noquit:     and #$05        ;Wait for CLK or DATA going low
                 beq drv_namebitloop
                 lsr                ;Read the data bit
                 lda #$02        ;Pull the other line low to acknowledge
@@ -1144,7 +1145,9 @@ drv_namecmploop:lda buf,x
                 bne drv_namedone        ;until at the endzero
                 inx
                 bne drv_namecmploop
-drv_namedone:   cmp #$a0                ;If got to a $a0, name correct
+drv_namedone:   cmp #$a0                ;If got endmark in both files, found
+                bne drv_notfound
+                lda drv_filename-3,x
                 beq drv_found
                 .else
                 lda buf+3,y
