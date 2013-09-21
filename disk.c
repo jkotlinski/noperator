@@ -82,6 +82,7 @@ void prompt_save_anim()
     char buf[18];
     clrscr();
     textcolor(COLOR_WHITE);
+    ls();
     cputs("save> ");
     if (!mygets(buf + 2)) return;
     buf[0] = 's';

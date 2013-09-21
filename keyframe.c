@@ -360,6 +360,8 @@ static void editloop()
             case CH_RUN:
                 play_current_segment();
                 break;
+            case CH_LEFTARROW:
+                return;
         }
     }
 }

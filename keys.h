@@ -24,6 +24,8 @@ THE SOFTWARE. }}} */
 #define CH_HOME 0x13
 #define CH_CLR 0x93
 
+#define CH_LEFTARROW 0x53
+
 #define CH_RUN 0x3
 #undef CH_STOP
 #define CH_STOP 0x83
