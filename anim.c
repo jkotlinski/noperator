@@ -52,9 +52,17 @@ static void init(void) {
 // -----
 
 static void do_store(char ch) {
-    *last_char++ = ch;
-    /* running out of RAM warning */
-    if (last_char == (char*)0xcf00) *(char*)0xd020 = COLOR_YELLOW;
+    *last_char = ch;
+    /* Advance last_char */
+    switch ((unsigned int)last_char) {
+        case 0xcfff:
+            break;
+        case 0xcf00:
+            /* running out of RAM warning */
+            *(char*)0xd020 = COLOR_YELLOW;
+        default:
+            ++last_char;
+    }
 }
 
 #define RLE_MARKER 0
