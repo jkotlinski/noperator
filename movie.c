@@ -72,18 +72,6 @@ void load_music()
     ticks_per_step = cgetc() - '0';
 }
 
-static void fastload_music()
-{
-    char* ptr = (char*)0x1000;
-    int ch;
-    loader_open(movie.music_path);
-    loader_getc();
-    while ((ch = loader_getc()) != -1) {
-        *ptr = ch;
-        ++ptr;
-    }
-}
-
 void play_movie()
 {
     unsigned int acc = 1 << 12;
@@ -94,7 +82,7 @@ void play_movie()
         return;
     anim_reset();
     loader_init();
-    fastload_music();
+    loader_load(movie.music_path);
     init_music();
     ticks_per_step = movie.ticks_per_step;
     loader_open(movie.anim_path);
