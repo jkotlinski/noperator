@@ -11,7 +11,7 @@
                                 ;when fastloading :)
 .define ADDITIONAL_ZEROPAGE  1         ;Set to nonzero to use additional zeropage
                                 ;variables to shorten loader code
-.define LOAD_UNDER_IO    1             ;Set to nonzero to enable possibility to load
+.define LOAD_UNDER_IO    0             ;Set to nonzero to enable possibility to load
                                 ;under I/O areas, and to load packed data
                                 ;under the Kernal ROM.
 .define LOADFILE_UNPACKED  1           ;Set to nonzero to include unpacked loading
