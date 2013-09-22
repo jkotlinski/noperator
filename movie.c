@@ -97,11 +97,13 @@ void play_movie()
     startirq();
     while (1) {
         /* Wait for tick. */
-        show_cursor();
-        // ++*(char*)0xd020;
-        while (ticks == 0);
-        // --*(char*)0xd020;
-        hide_cursor();
+        if (!ticks) {
+            show_cursor();
+            ++*(char*)0xd020;
+            while (ticks == 0);
+            --*(char*)0xd020;
+            hide_cursor();
+        }
         --ticks;
 
         acc += speed;
