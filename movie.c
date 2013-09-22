@@ -99,9 +99,7 @@ void play_movie()
         /* Wait for tick. */
         if (!ticks) {
             show_cursor();
-            ++*(char*)0xd020;
             while (ticks == 0);
-            --*(char*)0xd020;
             hide_cursor();
         }
         --ticks;

@@ -326,7 +326,16 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         return 1;
     }
 
-    switch (ch) {
+    if ((ch & 0x70) > 0x10) {
+        /* Normal char */
+        if (ch != (0x80 | ' ')) {
+            emit(ch);
+        } else {
+            reverse ^= 0x80;
+            emit(' ');
+            reverse ^= 0x80;
+        }
+    } else switch (ch) {
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
         case CH_F5: start_copy(); break;
@@ -366,12 +375,6 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case 0x9c: switch_color(COLOR_PURPLE); break;
         case 0x9e: switch_color(COLOR_YELLOW); break;
         case 0x9f: switch_color(COLOR_CYAN); break;
-        case 0x80 | ' ':
-                   reverse ^= 0x80;
-                   emit(' ');
-                   reverse ^= 0x80;
-                   break;
-        default: emit(ch);
     }
     return 1;
 }
