@@ -53,16 +53,12 @@ static void init(void) {
 
 static void do_store(char ch) {
     *last_char = ch;
-    /* Advance last_char */
-    switch ((unsigned int)last_char) {
-        case 0xcfff:
-            prompt_save_anim();
-            break;
-        case 0xcf00:
-            /* running out of RAM warning */
-            *(char*)0xd020 = COLOR_YELLOW;
-        default:
-            ++last_char;
+    if (last_char >= (char*)0xcf00) {
+        /* running out of RAM warning */
+        ++*(char*)0xd020;
+    }
+    if (last_char != (char*)0xcfff) {
+        ++last_char;
     }
 }
 
