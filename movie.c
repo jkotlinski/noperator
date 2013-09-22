@@ -40,16 +40,21 @@ static struct Movie
 };
 static struct Movie movie;
 
+void scratch_movie()
+{
+    cbm_open(1, 8, 15, "s:movie");
+    cbm_close(1);
+}
+
 void write_movie()
 {
     clrscr();
     textcolor(COLOR_WHITE);
     ls();
-    cputs("select anim> ");
+    cputs("anim> ");
     while (!mygets(movie.anim_path));
     movie.ticks_per_step = ticks_per_step;
-    cbm_open(1, 8, 15, "s:movie");  /* scratch */
-    cbm_close(1);
+    scratch_movie();
     cbm_save("movie", 8, &movie, sizeof(movie));
     play_movie();
 }

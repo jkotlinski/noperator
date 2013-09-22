@@ -29,20 +29,21 @@ void main_menu(void) {
     anim_reset();
     textcolor(COLOR_YELLOW);
     cputsxy(0, 0, "movie noperator");
-    cputsxy(0, 2, "choose editor:");
-    cputsxy(0, 4, "[a]nimation");
-    cputsxy(0, 5, "[m]usic select");
+    cputsxy(0, 2, "[a]nim edit");
+    cputsxy(0, 3, "[m]usic select");
     if (ticks_per_step) {
         /* Keyframe editor only makes sense if music is loaded. */
-        cputsxy(0, 6, "[k]eyframe edit");
-        cputsxy(0, 8, "[s]ave demo");
+        cputsxy(0, 4, "[k]eyframe edit");
+        cputsxy(0, 6, "[s]ave demo");
     }
+    cputsxy(0, 7, "[r]eset autostart");
     for (;;) {
         switch (cgetc()) {
             case 'a': anim_editor(); break;
             case 'k': keyframe_editor(); main_menu();
             case 'm': load_music(); main_menu();
             case 's': write_movie(); main_menu();
+            case 'r': scratch_movie(); break;
         }
     }
 }

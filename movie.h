@@ -22,6 +22,7 @@ THE SOFTWARE. }}} */
 #define MOVIE_H
 
 void write_movie();
+void scratch_movie();
 
 void load_music();
 
