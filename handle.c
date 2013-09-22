@@ -79,6 +79,8 @@ static void start_copy() {
 
 static void paste() {
     char yi;
+    char* src_color;
+    char* src_char;
     if (CLIP_X1 == 0xff) return;
 
     // Pastes region.
@@ -86,11 +88,15 @@ static void paste() {
         const char dst_y = y + yi - CLIP_Y1;
         char xi;
         if (dst_y >= 25) break;
+        src_char = clipboard + yi * 40 + CLIP_X1;
+        src_color = clipboard_color + yi * 40 + CLIP_X1;
         for (xi = CLIP_X1; xi <= CLIP_X2; ++xi) {
             const char dst_x = x + xi - CLIP_X1;
             if (dst_x >= 40) break;
-            DISPLAY_BASE[dst_y * 40 + dst_x] = clipboard[yi * 40 + xi];
-            ((char*)0xd800)[dst_y * 40 + dst_x] = clipboard_color[yi * 40 + xi];
+            DISPLAY_BASE[dst_y * 40 + dst_x] = *src_char;
+            ((char*)0xd800)[dst_y * 40 + dst_x] = *src_color;
+            ++src_char;
+            ++src_color;
         }
     }
 }
