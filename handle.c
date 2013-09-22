@@ -28,11 +28,11 @@ THE SOFTWARE. }}} */
 
 #define RLE_MARKER 0
 
-char copy_mode;
+static char copy_mode;
 
-unsigned char color = COLOR_WHITE;
-char clipboard[40 * 25];
-char clipboard_color[40 * 25];
+static unsigned char color = COLOR_WHITE;
+static char clipboard[40 * 25];
+static char clipboard_color[40 * 25];
 
 /* (CLIP_X1, CLIP_Y1) = top left.
  * (CLIP_X2, CLIP_Y2) = bottom right.
@@ -66,8 +66,8 @@ static void invert_copy_mark() {
 
 static char x_;
 static char y_;
-char* charptr = DISPLAY_BASE;
-char* colptr = (char*)0xd800;
+static char* charptr = DISPLAY_BASE;
+static char* colptr = (char*)0xd800;
 
 static void start_copy() {
     CLIP_X1 = x_;
@@ -269,7 +269,7 @@ static char cur_right(char may_move_screen) {
     return 1;
 }
 
-unsigned char reverse;
+static unsigned char reverse;
 
 static void emit(unsigned char ch) {
     static const unsigned char screencode[256] = {
