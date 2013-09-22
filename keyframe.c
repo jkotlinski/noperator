@@ -300,7 +300,7 @@ static void play_current_segment()
         acc += speed;
         while (acc >= (1 << 12)) {
             if (rle_left) {
-                handle(rle_char(), 1);
+                handle(rle_char, 1);
                 --rle_left;
             } else while (1) {
                 if (read_pos == end) {
@@ -311,7 +311,7 @@ static void play_current_segment()
                 rle_left = rle_dec(*read_pos);
                 ++read_pos;
                 if (rle_left) {
-                    handle(rle_char(), 1);
+                    handle(rle_char, 1);
                     --rle_left;
                     break;
                 }

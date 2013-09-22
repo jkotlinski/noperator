@@ -22,4 +22,4 @@ THE SOFTWARE. }}} */
  * consumption through rlechar() after decoding ch.
  */
 unsigned char rle_dec(unsigned char ch);
-unsigned char rle_char();
+extern const unsigned char rle_char;

@@ -20,12 +20,7 @@ THE SOFTWARE. }}} */
 
 #define RLE_MARKER 0
 
-static unsigned char last_char;
-
-unsigned char rle_char()
-{
-    return last_char;
-}
+unsigned char rle_char;
 
 unsigned char rle_dec(unsigned char ch)
 {
@@ -37,11 +32,11 @@ unsigned char rle_dec(unsigned char ch)
                 return 0;
             }
             /* Not RLE. */
-            last_char = ch;
+            rle_char = ch;
             return 1;
         case 1:
             rle_mode = 2;
-            last_char = ch;
+            rle_char = ch;
             return 0;
         case 2:
             rle_mode = 0;

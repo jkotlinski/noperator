@@ -98,14 +98,16 @@ void play_movie()
     while (1) {
         /* Wait for tick. */
         show_cursor();
+        // ++*(char*)0xd020;
         while (ticks == 0);
+        // --*(char*)0xd020;
         hide_cursor();
         --ticks;
 
         acc += speed;
         while (acc >= (1 << 12)) {
             if (rle_left) {
-                handle(rle_char(), 1);
+                handle(rle_char, 1);
                 --rle_left;
             } else while (1) {
                 int ch = loader_getc();
@@ -122,7 +124,7 @@ void play_movie()
                         rle_left = rle_dec(ch);
                 }
                 if (rle_left) {
-                    handle(rle_char(), 1);
+                    handle(rle_char, 1);
                     --rle_left;
                     break;
                 }

@@ -329,7 +329,7 @@ void handle_rle(unsigned char ch)
 {
     unsigned char i = rle_dec(ch);
     while (i--)
-        handle(rle_char(), 1);
+        handle(rle_char, 1);
 }
 
 unsigned char curx()
