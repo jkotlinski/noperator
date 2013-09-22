@@ -128,7 +128,7 @@ static void handle_copy(char ch)
             break;
         case CH_F5: /* copy done */
             {
-                char tmp = *(char*)0xd020;
+                char bgcol = *(char*)0xd020;
                 if (!playback_mode)
                     *(char*)0xd020 = 5;
                 invert_copy_mark();
@@ -147,7 +147,7 @@ static void handle_copy(char ch)
                     CLIP_Y2 = tmp;
                 }
                 copy_mode = 0;
-                *(char*)0xd020 = tmp;
+                *(char*)0xd020 = bgcol;
             }
             break;
     }
