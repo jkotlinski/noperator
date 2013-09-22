@@ -1,14 +1,15 @@
 ;-------------------------------------------------------------------------------
-; COVERT BITOPS Autoconfiguring Loader/Depacker V2.2
-; with REU+SuperRAM, and 1541/1571/1581/CMD FD/CMD HD support
+; COVERT BITOPS Autoconfiguring Loader/Depacker V2.25
+; with 1541/1571/1581/CMD FD/CMD HD/IDE64/Fastdrive-emu autodetection & support
 ;
-; EXOMIZER compressor by Magnus Lind
-; PUCRUNCH compressor by Pasi Ojala
+; EXOMIZER 2 depack by Magnus Lind & Krill
+; PUCRUNCH depack by Pasi Ojala
 ; 1581/CMD FD/CMD HD information from Ninja & DocBacardi /The Dreams
-; Rest by Lasse ™”rni
+; 2MHz 2-bit transfer delay code by MagerValp
+; Rest by Lasse Öörni
 ;
 ; Thanks to K.M/TABOO for inspiration on badline detection and 1-bit transfer,
-; and Marko M„kel„ for his original irqloader.s (huge inspiration)
+; and Marko Mäkelä for his original irqloader.s (huge inspiration)
 ;-------------------------------------------------------------------------------
 
 .define processor 6502
@@ -24,63 +25,63 @@
 ; Include your loader configuration file at this point!
 ;-------------------------------------------------------------------------------
 
-.include "cfg_unp.s"
+.include "cfg_2bit.s"
 
 ;-------------------------------------------------------------------------------
 ; Defines derived from the compile options (need not be changed)
 ;-------------------------------------------------------------------------------
 
-.if ADDITIONAL_ZEROPAGE>0
-.define loadtempreg     zpbase2+0      ;Temp variables for the loader
-.define bufferstatus    zpbase2+1      ;Bytes in REU/fastload buffer
-.define fileopen        zpbase2+2      ;File open indicator
-.define fastloadstatus  zpbase2+3      ;Fastloader active indicator
-.endif
+                .if ADDITIONAL_ZEROPAGE>0
+loadtempreg     = zpbase2+0      ;Temp variables for the loader
+bufferstatus    = zpbase2+1      ;Bytes in fastload buffer
+fileopen        = zpbase2+2      ;File open indicator
+fastloadstatus  = zpbase2+3      ;Fastloader active indicator
+                .endif
 
-.define destlo          zpbase+0
-.define desthi          zpbase+1
+destlo          = zpbase+0
+desthi          = zpbase+1
 
 ;-------------------------------------------------------------------------------
 ; Other defines
 ;-------------------------------------------------------------------------------
 
-.define MW_LENGTH       32            ;Bytes in one M-W command
+MW_LENGTH       = 32            ;Bytes in one M-W command
 
-.define status          $90           ;Kernal zeropage variables
-.define messages        $9d
-.define fa              $ba
+status          = $90           ;Kernal zeropage variables
+messages        = $9d
+fa              = $ba
 
-.define acsbf           $01           ;Diskdrive variables: Buffer 1 command
-.define trkbf           $08           ;Buffer 1 track
-.define sctbf           $09           ;Buffer 1 sector
-.define iddrv0          $12           ;Disk drive ID
-.define drvtemp         $06           ;Temp variable
-.define id              $16           ;Disk ID
-.define buf             $0400         ;Sector data buffer
-.define drvstart        $0500         ;Start of drivecode
-.define initialize      $d005         ;Initialize routine in 1541 ROM
+acsbf           = $01           ;Diskdrive variables: Buffer 1 command
+trkbf           = $08           ;Buffer 1 track
+sctbf           = $09           ;Buffer 1 sector
+iddrv0          = $12           ;Disk drive ID
+drvtemp         = $06           ;Temp variable
+id              = $16           ;Disk ID
+buf             = $0400         ;Sector data buffer
+drvstart        = $0500         ;Start of drivecode
+initialize      = $d005         ;Initialize routine in 1541 ROM
 
-.define ciout           $ffa8         ;Kernal routines
-.define listen          $ffb1
-.define second          $ff93
-.define unlsn           $ffae
-.define talk            $ffb4
-.define tksa            $ff96
-.define untlk           $ffab
-.define acptr           $ffa5
-.define chkin           $ffc6
-.define chkout          $ffc9
-.define chrin           $ffcf
-.define chrout          $ffd2
-.define close           $ffc3
-.define open            $ffc0
-.define setmsg          $ff90
-.define setnam          $ffbd
-.define setlfs          $ffba
-.define clrchn          $ffcc
-.define getin           $ffe4
-.define load            $ffd5
-.define save            $ffd8
+ciout           = $ffa8         ;Kernal routines
+listen          = $ffb1
+second          = $ff93
+unlsn           = $ffae
+talk            = $ffb4
+tksa            = $ff96
+untlk           = $ffab
+acptr           = $ffa5
+chkin           = $ffc6
+chkout          = $ffc9
+chrin           = $ffcf
+chrout          = $ffd2
+close           = $ffc3
+open            = $ffc0
+setmsg          = $ff90
+setnam          = $ffbd
+setlfs          = $ffba
+clrchn          = $ffcc
+getin           = $ffe4
+load            = $ffd5
+save            = $ffd8
 
 ;-------------------------------------------------------------------------------
 ; Resident portion of loader (routines that you're going to use at runtime)
@@ -125,42 +126,42 @@ loadfile_fail:  rts
 ;-------------------------------------------------------------------------------
 ; LOADFILE_EXOMIZER
 ;
-; Loads a file packed with EXOMIZER
+; Loads a file packed with EXOMIZERx
 ;
 ; Parameters: X (low),Y (high): Address of null-terminated filename
 ; Returns: C=0 OK, C=1 error (A holds errorcode)
 ; Modifies: A,X,Y
 ;-------------------------------------------------------------------------------
 
-.define tabl_bi         depackbuffer
-.define tabl_lo         depackbuffer+52
-.define tabl_hi         depackbuffer+104
+tabl_bi         = depackbuffer
+tabl_lo         = depackbuffer+52
+tabl_hi         = depackbuffer+104
 
-.define zp_len_lo       zpbase+0
-.define zp_src_lo       zpbase+1
-.define zp_src_hi       zpbase+2
-.define zp_bits_lo      zpbase+3
-.define zp_bits_hi      zpbase+4
-.define zp_bitbuf       zpbase+5
-.define zp_dest_lo      zpbase+6
-.define zp_dest_hi      zpbase+7
+zp_len_lo       = zpbase+0
+zp_src_lo       = zpbase+1
+zp_src_hi       = zpbase+2
+zp_bits_lo      = zpbase+3
+zp_bits_hi      = zpbase+4
+zp_bitbuf       = zpbase+5
+zp_dest_lo      = zpbase+6
+zp_dest_hi      = zpbase+7
 
 loadfile_exomizer:
                 jsr openfile
                 tsx
                 stx exomizer_stackptr+1
-                jsr exomizer_depack
-                clc
-                rts
 
 ; -------------------------------------------------------------------
-; EXOMIZER depackroutine by Magnus Lind
-; Modified by Lasse ™”rni for interrupt disabling (loading under I/O)
-; and to call getbyte directly without need for a "wrapper" routine
-; that slows down decrunching/loading
+; This source code is altered and is not the original version found on
+; the Exomizer homepage.
+; It contains modifications made by Krill/Plush to depack a packed file
+; crunched forward and to work with his loader.
+;
+; Further modification (error handling, loading under IO area) &
+; bugfixing of the forward decruncher by Lasse Öörni
 ; -------------------------------------------------------------------
 ;
-; Copyright (c) 2002 Magnus Lind.
+; Copyright (c) 2002 - 2005 Magnus Lind.
 ;
 ; This software is provided 'as-is', without any express or implied warranty.
 ; In no event will the authors be held liable for any damages arising from
@@ -184,12 +185,11 @@ loadfile_exomizer:
 ;   used to endorse or promote products derived from this software without
 ;   specific prior written permission.
 ;
-; exodecruncher.s, a part of the exomizer v1.0 release
 ; -------------------------------------------------------------------
 ; no code below this comment has to be modified in order to generate
 ; a working decruncher of this source file.
 ; However, you may want to relocate the tables last in the file to a
-; more suitable adress.
+; more suitable address.
 ; -------------------------------------------------------------------
 
 ; -------------------------------------------------------------------
@@ -197,67 +197,61 @@ loadfile_exomizer:
 ; call the decruncher
 ; no constraints on register content, however the
 ; decimal flag has to be #0 (it almost always is, otherwise do a cld)
-exomizer_depack:
+exomizer:
+
+  .if FORWARD_DECRUNCHING>0
+
 ; -------------------------------------------------------------------
-; init zeropage (12 bytes)
+; init zeropage, x and y regs.
 ;
-        ldy #0
-        ldx #3
+  ldx #3
+  ldy #0
 init_zp:
-        php
-        jsr getbyte
-        bcs exomizer_fail
-        plp
-        sta zp_bitbuf - 1,x
-        dex
-        bne init_zp
+  jsr getbyte
+  bcs exomizer_error
+  sta zp_bitbuf-1,x
+  dex
+  bne init_zp
+
 ; -------------------------------------------------------------------
-; calculate tables (53 bytes)
+; calculate tables (50 bytes)
 ; x and y must be #0 when entering
 ;
 nextone:
-        inx
-        tya
-        and #$0f
-        beq shortcut                ; starta på ny sekvens
+  inx
+  tya
+  and #$0f
+  beq shortcut    ; start with new sequence
 
-        lda zp_bits_lo
-        adc tabl_lo-1,y
-        tax
-
-        lda zp_bits_hi
-        adc tabl_hi-1,y
-shortcut:
-        sta tabl_hi,y
-        txa
-        sta tabl_lo,y
-
-        ldx #4
-        jsr get_bits                ; clears x-reg.
-        sta tabl_bi,y
-
-        stx zp_bits_lo                ; zp_bits_hi is already 0 because
-        tax                        ; we called get_bits with x = 4
-        inx
-        sec
+  txa          ; this clears reg a
+  lsr          ; and sets the carry flag
+  ldx tabl_bi-1,y
 rolle:
-        rol zp_bits_lo
-        rol zp_bits_hi
-        dex
-        bne rolle                ; c = 0 after this
-skip:
-        iny
-        cpy #52
-        bne nextone
-        ldy #0
-        beq begin
+  rol
+  rol zp_bits_hi
+  dex
+  bpl rolle    ; c = 0 after this (rol zp_bits_hi)
+
+  adc tabl_lo-1,y
+  tax
+
+  lda zp_bits_hi
+  adc tabl_hi-1,y
+shortcut:
+  sta tabl_hi,y
+  txa
+  sta tabl_lo,y
+
+  ldx #4
+  jsr get_bits    ; clears x-reg.
+  sta tabl_bi,y
+  iny
+  cpy #52
+  bne nextone
+  beq begin
+
 ; -------------------------------------------------------------------
-; get x + 1 bits (1 byte)
-;
-get_bit1:
-        inx
-; -------------------------------------------------------------------
-; get bits (31 bytes)
+; get bits (29 bytes)
 ;
 ; args:
 ;   x = number of bits to get
@@ -265,168 +259,420 @@ get_bit1:
 ;   a = #bits_lo
 ;   x = #0
 ;   c = 0
-;   zp_bits_lo = #bits_lo
+;   z = 1
 ;   zp_bits_hi = #bits_hi
 ; notes:
 ;   y is untouched
-;   other status bits are set to (a == #0)
 ; -------------------------------------------------------------------
 get_bits:
-        lda #$00
-        sta zp_bits_lo
-        sta zp_bits_hi
-        cpx #$01
-        bcc bits_done
-        lda zp_bitbuf
+  lda #$00
+  sta zp_bits_hi
+  cpx #$01
+  bcc bits_done
 bits_next:
-        lsr
-        bne bits_ok
-        php
-        jsr getbyte
-        bcs exomizer_fail
-        plp
-        ror
+  lsr zp_bitbuf
+  bne bits_ok
+  pha
+  jsr getbyte
+  bcs exomizer_error
+  sec
+  ror
+  sta zp_bitbuf
+  pla
 bits_ok:
-        rol zp_bits_lo
-        rol zp_bits_hi
-        dex
-        bne bits_next
-        sta zp_bitbuf
-        lda zp_bits_lo
+  rol
+  rol zp_bits_hi
+  dex
+  bne bits_next
 bits_done:
-        rts
+  rts
+
+exomizer_ok:
+  clc
+exomizer_error:
+exomizer_stackptr:
+  ldx #$ff
+  txs
+  rts
+
 ; -------------------------------------------------------------------
-; Failure when reading a byte: restore stackptr and exit
+; literal sequence handling
 ;
-exomizer_fail:                          ;A premature EOF is treated as an
-exomizer_stackptr:                      ;error; return directly to caller
-        ldx #$00
-        txs
-        rts
+  .if LITERAL_SEQUENCES_NOT_USED=0
+literal_start:
+  ldx #$10    ; these 16 bits
+  jsr get_bits; tell the length of the sequence
+  ldx zp_bits_hi
+  .endif
+literal_start1: ; if literal byte, a = 1, zp_bits_hi = 0
+  sta zp_len_lo
+
 ; -------------------------------------------------------------------
-; main copy loop (16 bytes)
+; main copy loop
+; x = length hi
+; y = length lo
 ;
-copy_next_hi:
-        dex
-        dec zp_dest_hi
-        dec zp_src_hi
-copy_next:
-        dey
-        .if LOAD_UNDER_IO>0
-        jsr disableio
-        .endif
-        lda (zp_src_lo),y
-literal_entry:
-        sta (zp_dest_lo),y
-        .if LOAD_UNDER_IO>0
-        jsr enableio
-        .endif
 copy_start:
-        tya
-        bne copy_next
-        txa
-        bne copy_next_hi
+  ldy #$00
+copy_next:
+  bcs copy_noliteral
+  jsr getbyte
+  bcs exomizer_error
+copy_noliteral:
+  .if LOAD_UNDER_IO>0
+  jsr disableio
+  .endif
+  bcc copy_store
+  lda (zp_src_lo),y
+copy_store:
+  sta (zp_dest_lo),y
+  .if LOAD_UNDER_IO>0
+  jsr enableio
+  .endif
+  iny
+  bne copy_skiphi
+  dex
+  inc zp_dest_hi
+  inc zp_src_hi
+copy_skiphi:
+  tya
+  eor zp_len_lo
+  bne copy_next
+  txa
+  bne copy_next
+  tya
+  clc
+  adc zp_dest_lo
+  sta zp_dest_lo
+  bcc copy_skiphi2
+  inc zp_dest_hi
+copy_skiphi2:
+
 ; -------------------------------------------------------------------
-; decruncher entry point, needs calculated tables (5 bytes)
+; decruncher entry point, needs calculated tables (21(13) bytes)
 ; x and y must be #0 when entering
 ;
 begin:
-        jsr get_bit1
-        beq sequence
+  inx
+  jsr get_bits
+  tay
+  bne literal_start1; if bit set, get a literal byte
+getgamma:
+  inx
+  jsr bits_next
+  lsr
+  iny
+  bcc getgamma
+  cpy #$11
+  beq exomizer_ok   ; gamma = 17   : end of file
+  .if LITERAL_SEQUENCES_NOT_USED=0
+  bcs literal_start ; gamma = 18   : literal sequence
+  .endif
+                    ; gamma = 1..16: sequence
+
 ; -------------------------------------------------------------------
-; literal handling (13 bytes)
+; calulate length of sequence (zp_len) (11 bytes)
 ;
-literal_start:
-        lda zp_dest_lo
-        bne avoid_hi
-        dec zp_dest_hi
-avoid_hi:
-        dec zp_dest_lo
-        php
-        jsr getbyte
-        bcs exomizer_fail
-        plp
-        .if LOAD_UNDER_IO>0
-        bcs sequence
-        jsr disableio
-        .endif
-        bcc literal_entry
+  ldx tabl_bi-1,y
+  jsr get_bits
+  adc tabl_lo-1,y  ; we have now calculated zp_len_lo
+  sta zp_len_lo
 ; -------------------------------------------------------------------
-; count zero bits + 1 to get length table index (10 bytes)
-; y = x = 0 when entering
-;
-sequence:
-next1:
-        iny
-        jsr get_bit1
-        beq next1
-        cpy #$11
-        bcs bits_done
-; -------------------------------------------------------------------
-; calulate length of sequence (zp_len) (17 bytes)
-;
-        ldx tabl_bi - 1,y
-        jsr get_bits
-        adc tabl_lo - 1,y
-        sta zp_len_lo
-        lda zp_bits_hi
-        adc tabl_hi - 1,y
-        pha
+; now do the hibyte of the sequence length calculation (6 bytes)
+  lda zp_bits_hi
+  adc tabl_hi-1,y  ; c = 0 after this.
+  pha
 ; -------------------------------------------------------------------
 ; here we decide what offset table to use (20 bytes)
 ; x is 0 here
 ;
-        bne nots123
-        ldy zp_len_lo
-        cpy #$04
-        bcc size123
+  bne nots123
+  ldy zp_len_lo
+  cpy #$04
+  bcc size123
 nots123:
-        ldy #$03
+  ldy #$03
 size123:
-        ldx tabl_bit - 1,y
-        jsr get_bits
-        adc tabl_off - 1,y
-        tay
+  ldx tabl_bit-1,y
+  jsr get_bits
+  adc tabl_off-1,y  ; c = 0 after this.
+  tay      ; 1 <= y <= 52 here
+
 ; -------------------------------------------------------------------
-; prepare zp_dest (11 bytes)
+; calulate absolute offset (zp_src)
 ;
-        sec
-        lda zp_dest_lo
-        sbc zp_len_lo
-        sta zp_dest_lo
-        bcs noborrow
-        dec zp_dest_hi
+  ldx tabl_bi,y
+  jsr get_bits
+  adc tabl_lo,y
+  bcc skipcarry
+  inc zp_bits_hi
+skipcarry:
+  sec
+  eor #$ff
+  adc zp_dest_lo
+  sta zp_src_lo
+  lda zp_dest_hi
+  sbc zp_bits_hi
+  sbc tabl_hi,y
+  sta zp_src_hi
+
+; -------------------------------------------------------------------
+; prepare for copy loop (8(6) bytes)
+;
+  pla
+  tax
+  sec
+  jmp copy_start
+
+  .else
+
+; -------------------------------------------------------------------
+; init zeropage, x and y regs. (12 bytes)
+;
+  ldy #0
+  ldx #3
+init_zp:
+  jsr getbyte
+  bcs exomizer_error
+  sta zp_bitbuf-1,x
+  dex
+  bne init_zp
+
+; -------------------------------------------------------------------
+; calculate tables (50 bytes)
+; x and y must be #0 when entering
+;
+nextone:
+  inx
+  tya
+  and #$0f
+  beq shortcut              ; starta på ny sekvens
+  txa                       ; this clears reg a
+  lsr                       ; and sets the carry flag
+  ldx tabl_bi-1,y
+rolle:          
+  rol
+  rol zp_bits_hi
+  dex
+  bpl rolle                 ; c = 0 after this (rol zp_bits_hi)
+  adc tabl_lo-1,y
+  tax
+  lda zp_bits_hi
+  adc tabl_hi-1,y
+shortcut:       
+  sta tabl_hi,y
+  txa
+  sta tabl_lo,y
+  ldx #4
+  jsr get_bits              ; clears x-reg.
+  sta tabl_bi,y
+  iny
+  cpy #52
+  bne nextone
+  ldy #0
+  beq begin
+
+; -------------------------------------------------------------------
+; get bits (29 bytes)
+;
+; args:
+;   x = number of bits to get
+; returns:
+;   a = #bits_lo
+;   x = #0
+;   c = 0
+;   z = 1
+;   zp_bits_hi = #bits_hi
+; notes:
+;   y is untouched
+; -------------------------------------------------------------------
+get_bits:       
+  lda #$00
+  sta zp_bits_hi
+  cpx #$01
+  bcc bits_done
+bits_next:      
+  lsr zp_bitbuf
+  bne bits_ok
+  pha
+literal_get_byte:
+  php
+  jsr getbyte
+  bcs exomizer_error
+  plp
+  bcc literal_byte_gotten
+  ror
+  sta zp_bitbuf
+  pla
+bits_ok:
+  rol
+  rol zp_bits_hi
+  dex
+  bne bits_next
+bits_done:
+  rts
+
+exomizer_ok:
+  clc
+exomizer_error:
+exomizer_stackptr:
+  ldx #$ff
+  txs
+  rts
+
+; -------------------------------------------------------------------
+; main copy loop (18(16) bytes)
+;
+copy_next_hi:
+  dex
+  dec zp_dest_hi
+  dec zp_src_hi
+copy_next:
+  dey
+  .if LITERAL_SEQUENCES_NOT_USED = 0
+  bcc literal_get_byte
+  .endif
+literal_byte_gotten:
+  .if LOAD_UNDER_IO>0
+  jsr disableio
+  .endif
+  bcc copy_store
+  lda (zp_src_lo),y
+copy_store:
+  sta (zp_dest_lo),y
+  .if LOAD_UNDER_IO>0
+  jsr enableio
+  .endif
+copy_start:
+  tya
+  bne copy_next
+begin:
+  txa
+  bne copy_next_hi
+; -------------------------------------------------------------------
+; decruncher entry point, needs calculated tables (21(13) bytes)
+; x and y must be #0 when entering
+;
+  .if LITERAL_SEQUENCES_NOT_USED = 0
+  inx
+  jsr get_bits
+  tay
+  bne literal_start1
+  .else
+  dey
+  .endif
+begin2:
+  inx
+  jsr bits_next
+  lsr
+  iny
+  bcc begin2
+  .if LITERAL_SEQUENCES_NOT_USED > 0
+  beq literal_start
+  .endif
+  cpy #$11
+  .if LITERAL_SEQUENCES_NOT_USED = 0
+  bcc sequence_start
+  beq exomizer_ok
+; -------------------------------------------------------------------
+; literal sequence handling (13(2) bytes)
+;
+  ldx #$10
+  jsr get_bits
+literal_start1: 
+  sta zp_len_lo
+  ldx zp_bits_hi
+  ldy #0
+  bcc literal_start
+sequence_start:
+  .else
+  bcs exomizer_ok
+  .endif
+; -------------------------------------------------------------------
+; calulate length of sequence (zp_len) (11 bytes)
+;
+  ldx tabl_bi-1,y
+  jsr get_bits
+  adc tabl_lo-1,y         ; we have now calculated zp_len_lo
+  sta zp_len_lo
+; -------------------------------------------------------------------
+; now do the hibyte of the sequence length calculation (6 bytes)
+  lda zp_bits_hi
+  adc tabl_hi-1,y         ; c = 0 after this.
+  pha
+; -------------------------------------------------------------------
+; here we decide what offset table to use (20 bytes)
+; x is 0 here
+;
+  bne nots123
+  ldy zp_len_lo
+  cpy #$04
+  bcc size123
+nots123:        
+  ldy #$03
+size123:        
+  ldx tabl_bit-1,y
+  jsr get_bits
+  adc tabl_off-1,y          ; c = 0 after this.
+  tay                       ; 1 <= y <= 52 here
+; -------------------------------------------------------------------
+; Here we do the dest_lo -= len_lo subtraction to prepare zp_dest
+; but we do it backwards:                a - b == (b - a - 1) ^ ~0 (C-syntax)
+; (16(16) bytes)
+  lda zp_len_lo
+literal_start:  
+  sbc zp_dest_lo            ; literal enters here with y = 0, c = 1
+  bcc noborrow
+  dec zp_dest_hi
 noborrow:
+  eor #$ff
+  sta zp_dest_lo
+  cpy #$01                  ; y < 1 then literal
+  .if LITERAL_SEQUENCES_NOT_USED = 0
+  bcc pre_copy
+  .else
+  bcc literal_get_byte
+  .endif
 ; -------------------------------------------------------------------
 ; calulate absolute offset (zp_src) (27 bytes)
 ;
-        ldx tabl_bi,y
-        jsr get_bits;
-        adc tabl_lo,y
-        bcc skipcarry
-        inc zp_bits_hi
-        clc
+  ldx tabl_bi,y
+  jsr get_bits;
+  adc tabl_lo,y
+  bcc skipcarry
+  inc zp_bits_hi
+  clc
 skipcarry:
-        adc zp_dest_lo
-        sta zp_src_lo
-        lda zp_bits_hi
-        adc tabl_hi,y
-        adc zp_dest_hi
-        sta zp_src_hi
+  adc zp_dest_lo
+  sta zp_src_lo
+  lda zp_bits_hi
+  adc tabl_hi,y
+  adc zp_dest_hi
+  sta zp_src_hi
 ; -------------------------------------------------------------------
-; prepare for copy loop (6 bytes)
+; prepare for copy loop (8(6) bytes)
 ;
-        ldy zp_len_lo
-        pla
-        tax
-        bcc copy_start
+  pla
+  tax
+  sec
+  .if LITERAL_SEQUENCES_NOT_USED = 0
+pre_copy:
+  ldy zp_len_lo
+  jmp copy_start
+  .else
+  ldy zp_len_lo
+  bcs copy_start
+  .endif
+
+  .endif
+
 ; -------------------------------------------------------------------
-; two small static tables (6 bytes)
+; two small static tables (6(6) bytes)
 ;
 tabl_bit:
-        .byte 2,4,4
+	.byte 2,4,4
 tabl_off:
-        .byte 48,32,16
+	.byte 48,32,16
 ; -------------------------------------------------------------------
 ; end of decruncher
 ; -------------------------------------------------------------------
@@ -444,10 +690,10 @@ tabl_off:
 ; Modifies: A,X,Y
 ;-------------------------------------------------------------------------------
 
-.define lzpos           zpbase
-.define bitstr          zpbase+2
+lzpos           = zpbase
+bitstr          = zpbase+2
 
-.define table           depackbuffer
+table           = depackbuffer
 
 loadfile_pucrunch:
                 jsr openfile
@@ -526,26 +772,26 @@ loadfile_pucrunch:
         sta bitstr
         jmp main
 
-getbyt: jsr getnew
+getbyt  jsr getnew
         lda bitstr
         ror
         rts
 
-newesc: ldy esc+1       ; remember the old code (top bits for escaped byte)
-escB0:  ldx #2          ; ** PARAMETER  0..8
+newesc  ldy esc+1       ; remember the old code (top bits for escaped byte)
+escB0   ldx #2          ; ** PARAMETER  0..8
         jsr getchkf     ; get & save the new escape code
         sta esc+1
         tya             ; pre-set the bits
         ; Fall through and get the rest of the bits.
-noesc:   ldx #6          ; ** PARAMETER  8..0
+noesc   ldx #6          ; ** PARAMETER  8..0
         jsr getchkf
         jsr putch       ; output the escaped/normal byte
         ; Fall through and check the escape bits again
-main:    ldy #0          ; Reset to a defined state
+main    ldy #0          ; Reset to a defined state
         tya             ; A = 0
-escB1:   ldx #2          ; ** PARAMETER  0..8
+escB1   ldx #2          ; ** PARAMETER  0..8
         jsr getchkf     ; X = 0
-esc:     cmp #0
+esc     cmp #0
         bne noesc
         ; Fall through to packed code
 
@@ -566,20 +812,20 @@ esc:     cmp #0
         ;***FALL THRU***
 
         ; e..e011
-srle:    iny             ; Y is 1 bigger than MSB loops
+srle    iny             ; Y is 1 bigger than MSB loops
         jsr getval      ; Y is 1, get len, X = 0
         sta lzpos       ; xstore - Save length LSB
-mg1:     cmp #64         ; ** PARAMETER 63-64 -> C clear, 64-64 -> C set..
+mg1     cmp #64         ; ** PARAMETER 63-64 -> C clear, 64-64 -> C set..
         bcc chrcode     ; short RLE, get bytecode
 
-longrle: ldx #2          ; ** PARAMETER  111111xxxxxx
+longrle ldx #2          ; ** PARAMETER  111111xxxxxx
         jsr getbits     ; get 3/2/1 more bits to get a full byte, X = 0
         sta lzpos       ; xstore - Save length LSB
 
         jsr getval      ; length MSB, X = 0
         tay             ; Y is 1 bigger than MSB loops
 
-chrcode: jsr getval      ; Byte Code, X = 0
+chrcode jsr getval      ; Byte Code, X = 0
         tax             ; this is executed most of the time anyway
         lda table-1,x   ; Saves one jump if done here (loses one txa)
 
@@ -593,25 +839,25 @@ chrcode: jsr getval      ; Byte Code, X = 0
 
 @1:     ldx lzpos       ; xstore - get length LSB
         inx             ; adjust for cpx#$ff;bne -> bne
-dorle:   jsr putch
+dorle   jsr putch
         dex
         bne dorle       ; xstore 0..255 -> 1..256
         dey
         bne dorle       ; Y was 1 bigger than wanted originally
-mainbeq: beq main        ; reverse condition -> jump always
+mainbeq beq main        ; reverse condition -> jump always
 
 
-lz77:   jsr getval      ; X = 0
-mg21:   cmp #127        ; ** PARAMETER  Clears carry (is maximum value)
+lz77    jsr getval      ; X = 0
+mg21    cmp #127        ; ** PARAMETER  Clears carry (is maximum value)
         bne noeof
 eof:    clc             ; Loading ended OK
         rts
 
-noeof:  sbc #0          ; C is clear -> subtract 1  (1..126 -> 0..125)
-elzpb:  ldx #0          ; ** PARAMETER (more bits to get)
+noeof   sbc #0          ; C is clear -> subtract 1  (1..126 -> 0..125)
+elzpb   ldx #0          ; ** PARAMETER (more bits to get)
         jsr getchkf     ; clears Carry, X = 0
 
-lz77_2: sta lzpos+1     ; offset MSB
+lz77_2  sta lzpos+1     ; offset MSB
         jsr getbyt2     ; clears Carry, X = 0
         ; Note: Already eor:ed in the compressor..
         ;eor #255       ; offset LSB 2's complement -1 (i.e. -X = ~X+1)
@@ -626,7 +872,7 @@ lz77_2: sta lzpos+1     ; offset MSB
 
         inx             ; adjust for cpx#$ff;bne -> bne
 
-lzslow: .if LOAD_UNDER_IO>0
+lzslow  .if LOAD_UNDER_IO>0
         jsr disableio
         .endif
         lda (lzpos),y   ; using abs,y is 3 bytes longer, only 1 cycle/byte faster
@@ -636,23 +882,23 @@ lzslow: .if LOAD_UNDER_IO>0
         bne lzslow      ; X loops, (256,1..255)
         jmp main
 
-putch:  .if LOAD_UNDER_IO>0
+putch   .if LOAD_UNDER_IO>0
         jsr disableio
         .endif
-outpos: sta $aaaa       ; ** parameter
+outpos  sta $aaaa       ; ** parameter
         inc outpos+1    ; ZP
         bne putchok
         inc outpos+2    ; ZP
-putchok:.if LOAD_UNDER_IO>0
+putchok .if LOAD_UNDER_IO>0
         jmp enableio
         .else
         rts
         .endif
 
-getnew: pha             ; 1 Byte/3 cycles
+getnew  pha             ; 1 Byte/3 cycles
         jsr getbyte
         bcs pucrunch_fail
-        sec
+@0:     sec
         rol             ; Shift out the next bit and
                         ;  shift in C=1 (last bit marker)
         sta bitstr      ; bitstr initial value = $80 == empty
@@ -661,15 +907,15 @@ getnew: pha             ; 1 Byte/3 cycles
         ; 25+12 = 37
 
 ; getval : Gets a 'static huffman coded' value
-; ** Scratches X, returns the value in A **
-getval: inx             ; X <- 1
+n; ** Scratches X, returns the value in A **
+getval  inx             ; X <- 1
         txa             ; set the top bit (value is 1..255)
-gv0:    asl bitstr
+gv0     asl bitstr
         bne @1
         jsr getnew
 @1:     bcc getchk      ; got 0-bit
         inx
-mg:     cpx #7          ; ** PARAMETER unary code maximum length + 1
+mg      cpx #7          ; ** PARAMETER unary code maximum length + 1
         bne gv0
         beq getchk      ; inverse condition -> jump always
         ; getval: 18 bytes
@@ -677,22 +923,22 @@ mg:     cpx #7          ; ** PARAMETER unary code maximum length + 1
 
 ; getbits: Gets X bits from the stream
 ; ** Scratches X, returns the value in A **
-getbyt2:ldx #7
-get1bit:inx             ;2
-getbits:asl bitstr
+getbyt2 ldx #7
+get1bit inx             ;2
+getbits asl bitstr
         bne @1
         jsr getnew
 @1:     rol             ;2
-getchk: dex             ;2              more bits to get ?
-getchkf:bne getbits     ;2/3
+getchk  dex             ;2              more bits to get ?
+getchkf bne getbits     ;2/3
         clc             ;2              return carry cleared
         rts             ;6+6
 
 pucrunch_fail:                          ;A premature EOF is treated as an
 pucrunch_stackptr:                      ;error; return directly to caller
-                ldx #$00
-                txs
-                rts
+        ldx #$00
+        txs
+        rts
                 .endif
 
 ;-------------------------------------------------------------------------------
@@ -759,7 +1005,7 @@ slowopen_nameloop:
 ; FASTOPEN
 ;
 ; Opens a file with fastloader. Uses an asynchronous protocol inspired by
-; Marko M„kel„'s work when sending the filename.
+; Marko Mäkelä's work when sending the filename.
 ;
 ; Parameters: -
 ; Returns: -
@@ -820,7 +1066,48 @@ fastload_predelay:
                 bne fastload_predelay   ;set DATA high before we continue
 
 fastload_fillbuffer:
-                sta $d07a                 ;SCPU to slow mode
+                sta $d07a               ;SCPU to slow mode
+                
+                .if TWOBIT_PROTOCOL>0
+
+                ldx #$00
+fastload_fbwait:
+                bit $dd00               ;Wait for 1541 to signal data ready by
+                bmi fastload_fbwait     ;setting DATA low
+fastload_fbloop:
+                sei
+fastload_waitbadline:
+                lda $d011               ;Check that a badline won't disturb
+                clc                     ;the timing
+                sbc $d012
+                and #$07
+                beq fastload_waitbadline
+                lda $dd00
+                ora #$10
+                sta $dd00               ;Set CLK low
+fastload_delay: bit $00                 ;Delay (NTSC version, will be modified for PAL)
+                nop
+                and #$03
+                sta fastload_eor+1
+                sta $dd00               ;Set CLK high
+                lda $dd00
+                lsr
+                lsr
+                eor $dd00
+                lsr
+                lsr
+                eor $dd00
+                lsr
+                lsr
+fastload_eor:   eor #$00
+                eor $dd00
+                cli
+                sta loadbuffer,x
+                inx
+                bne fastload_fbloop
+
+                .else
+
 fastload_fbwait:bit $dd00                 ;Wait for 1541 to signal data ready by
                 bvc fastload_fbwait       ;setting CLK high
                 pha                       ;Some delay before beginning
@@ -848,6 +1135,8 @@ fastload_bitloop:
                 .endif
                 inx
                 bne fastload_fillbufferloop
+                
+                .endif
 
 fillbuffer_common:
                 stx bufferstatus                ;X is 0 here
@@ -934,8 +1223,8 @@ slowload_getbyte:
 disableio:      pha
                 lda $01
                 sta enableio_01+1
-                sei
                 lda #$34
+                sei
                 sta $01
                 pla
                 rts
@@ -1020,7 +1309,7 @@ kernaloff:      lda #$36
 il_ok:          rts
 
 ;-------------------------------------------------------------------------------
-; INITFASTLOADER
+; INITFASTLOAD
 ;
 ; Uploads the fastloader to disk drive memory and starts it.
 ;
@@ -1028,7 +1317,7 @@ il_ok:          rts
 ; Returns: -
 ; Modifies: A,X,Y
 ;-------------------------------------------------------------------------------
-	
+
 initfastload:   lda usefastload         ;If fastloader not needed, do nothing
                 beq il_ok
                 lda fastloadstatus      ;If fastloader already initted,
@@ -1066,14 +1355,14 @@ ifl_notover2:   dex
 ifl_nextpacket: lda fa                  ;Set drive to listen
                 jsr listen
                 lda status
-                and #$ff-$40
-                bne ifl_error           ;Abort if serial error (IDE64!)
+                cmp #$c0
+                beq ifl_error           ;Abort if serial error (IDE64!)
                 lda #$6f
                 jsr second
                 ldx #$05
                 dec loadtempreg         ;All "packets" sent?
                 bpl ifl_sendmw
-ifl_sendme:     lda ifl_mestring-1,x      ;Send M-E command (backwards)
+ifl_sendme:     lda ifl_mestring-1,x    ;Send M-E command (backwards)
                 jsr ciout
                 dex
                 bne ifl_sendme
@@ -1084,54 +1373,60 @@ ifl_error:      jmp kernaloff
 ; DRIVECODE - Code executed in the disk drive.
 ;-------------------------------------------------------------------------------
 
-drivecode:                      ;Address in C64's memory
-                .org drvstart   ;Address in diskdrive's memory
+drivecode:                              ;Address in C64's memory
+                .org drvstart           ;Address in diskdrive's memory
 
-drvmain:        cli             ;File loop: Get filename first
+drvmain:        cli                     ;File loop: Get filename first
+                lda #$00                ;Set DATA & CLK high
+drv_1800ac0:    sta $1800
                 .if LONG_NAMES>0
                 ldx #$00
                 .else
                 ldx #$01
                 .endif
-drv_nameloop:   ldy #$08        ;Bit counter
+drv_nameloop:   ldy #$08                ;Bit counter
 drv_namebitloop:
 drv_1800ac1:    lda $1800
-                bpl drv_noquit    ;Quit if ATN is low
+                bpl drv_noquit          ;Quit if ATN is low
                 jmp drv_quit
-drv_noquit:     and #$05        ;Wait for CLK or DATA going low
+drv_noquit:     and #$05                ;Wait for CLK or DATA going low
                 beq drv_namebitloop
-                lsr                ;Read the data bit
-                lda #$02        ;Pull the other line low to acknowledge
+                lsr                     ;Read the data bit
+                lda #$02                ;Pull the other line low to acknowledge
                 bcc drv_namezero ;the bit being received
                 lda #$08
-drv_namezero:   ror drv_filename,x ;Store the data bit
+drv_namezero:   ror drv_filename,x      ;Store the data bit
 drv_1800ac2:    sta $1800
 drv_namewait:
-drv_1800ac3:    lda $1800        ;Wait for either line going high
+drv_1800ac3:    lda $1800               ;Wait for either line going high
                 and #$05
                 cmp #$05
                 beq drv_namewait
                 lda #$00
-drv_1800ac4:    sta $1800        ;Set both lines high
+drv_1800ac4:    sta $1800               ;Set both lines high
                 dey
-                bne drv_namebitloop ;Loop until all bits have been received
-                sei             ;Disable interrupts after first byte
+                bne drv_namebitloop     ;Loop until all bits have been received
+                sei                     ;Disable interrupts after first byte
                 .if LONG_NAMES>0
                 inx
-                lda drv_filename-1,x ;End of filename?
+                lda drv_filename-1,x    ;End of filename?
                 bne drv_nameloop
                 .else
                 dex
                 bpl drv_nameloop
                 .endif
-                lda #$08            ;CLK low, data isn't available
+
+                .if TWOBIT_PROTOCOL=0
+                lda #$08                ;CLK low, data isn't available
 drv_1800ac5:    sta $1800
+                .endif
+
 drv_dirtrk:     ldx $1000
-drv_dirsct:     ldy $1000           ;Read disk directory
-drv_dirloop:    jsr drv_readsector  ;Read sector
-                bcs drv_loadend     ;If failed, return error code
+drv_dirsct:     ldy $1000               ;Read disk directory
+drv_dirloop:    jsr drv_readsector      ;Read sector
+                bcs drv_loadend         ;If failed, return error code
                 ldy #$02
-drv_nextfile:   lda buf,y       ;File type must be PRG
+drv_nextfile:   lda buf,y               ;File type must be PRG
                 and #$83
                 cmp #$82
                 bne drv_notfound
@@ -1140,12 +1435,12 @@ drv_nextfile:   lda buf,y       ;File type must be PRG
                 sty drv_namecmploop+1
                 lda #$a0                ;Make an endmark at the 16th letter
                 sta buf+19,y
-drv_namecmploop:lda buf,x
-                cmp drv_filename-3,x    ;Check against each letter of filename
-                bne drv_namedone        ;until at the endzero
+drv_namecmploop:lda buf,x               ;Check against each letter of filename,
+                cmp drv_filename-3,x    ;break on mismatch
+                bne drv_namedone
                 inx
                 bne drv_namecmploop
-drv_namedone:   cmp #$a0                ;If got endmark in both files, found
+drv_namedone:   cmp #$a0                ;If got endmark in both filenames, found
                 bne drv_notfound
                 lda drv_filename-3,x
                 beq drv_found
@@ -1162,18 +1457,18 @@ drv_notfound:   tya
                 adc #$20
                 tay
                 bcc drv_nextfile
-                ldy buf+1       ;Go to next directory block, go on until no
-                ldx buf                ;more directory blocks
+                ldy buf+1               ;Go to next directory block, go on until no
+                ldx buf                 ;more directory blocks
                 bne drv_dirloop
 drv_filenotfound:
-                ldx #$02        ;Return code $02 = File not found
+                ldx #$02                ;Return code $02 = File not found
 drv_loadend:    stx buf+2
                 lda #$00
                 sta buf
                 sta buf+1
                 beq drv_sendblk
 
-drv_quit:                       ;If ATN, exit to drive ROM code
+drv_quit:                               ;If ATN, exit to drive ROM code
 drv_drivetype:  ldx #$00
                 bne drv_not1541
                 jmp initialize
@@ -1185,21 +1480,67 @@ drv_nextsect:   ldx buf,y       ;File found, get starting track & sector
                 beq drv_loadend ;At file's end? (return code $00 = OK)
                 lda buf+1,y
                 tay
-                jsr drv_readsector ;Read the data sector
+                jsr drv_readsector      ;Read the data sector
                 bcs drv_loadend
-drv_sendblk:    lda #$04                  ;Bitpair counter/
-                ldx #$00                  ;compare-value for CLK-line
-drv_1800ac6:    stx $1800                 ;CLK & DATA high -> ready to go
+                
+                .if TWOBIT_PROTOCOL>0
+
+drv_sendblk:    ldy #$00
+                ldx #$02
+drv_sendloop:   lda buf,y
+                lsr
+                lsr
+                lsr
+                lsr
+drv_1800ac5:    stx $1800               ;Set DATA=low for first byte, high for
+                tax                     ;subsequent bytes
+                lda drv_sendtbl,x
+                pha
+                lda buf,y
+                and #$0f
+                tax
+                lda #$04
+drv_1800ac6:    bit $1800               ;Wait for CLK=low
+                beq drv_1800ac6
+                lda drv_sendtbl,x
+drv_1800ac7:    sta $1800
+drv_2mhzsend:   jsr drv_delay18
+                nop
+                asl
+                and #$0f
+drv_2mhz1800ac8:sta $1800
+                cmp ($00,x)
+                nop
+                pla
+drv_2mhz1800ac9:sta $1800
+                cmp ($00,x)
+                nop
+                asl
+                and #$0f
+drv_2mhz1800ac10:
+                sta $1800
+                ldx #$00
+                iny
+                bne drv_sendloop
+                jsr drv_delay12
+drv_2mhz1800ac11:
+                stx $1800               ;Finish send: DATA & CLK both high
+
+                .else
+
+drv_sendblk:    lda #$04                ;Bitpair counter/
+                ldx #$00                ;compare-value for CLK-line
+drv_1800ac6:    stx $1800               ;CLK & DATA high -> ready to go
 drv_sendloop:   ldx buf
 drv_zpac1:      stx drvtemp
-                tay                       ;Bitpair counter
+                tay                     ;Bitpair counter
 drv_sendloop_bitpair:
                 ldx #$00
 drv_zpac2:      lsr drvtemp
                 bcs drv_sendloop_wait1
                 ldx #$02
 drv_sendloop_wait1:
-drv_1800ac7:    bit $1800                 ;Wait until CLK high
+drv_1800ac7:    bit $1800               ;Wait until CLK high
                 bne drv_sendloop_wait1
 drv_1800ac8:    stx $1800
                 ldx #$00
@@ -1208,51 +1549,44 @@ drv_zpac3:      lsr drvtemp
                 ldx #$02
 drv_sendloop_wait2:
 drv_1800ac9:    bit $1800
-                beq drv_sendloop_wait2    ;Wait until CLK low
+                beq drv_sendloop_wait2  ;Wait until CLK low
 drv_1800ac10:   stx $1800
                 dey
                 bne drv_sendloop_bitpair
                 inc drv_sendloop+1
                 bne drv_sendloop
 drv_sendloop_endwait:
-drv_1800ac11:   bit $1800                 ;Wait for CLK high
+drv_1800ac11:   bit $1800               ;Wait for CLK high
                 bne drv_sendloop_endwait
-                asl                       ;Set CLK low, DATA high
-drv_1800ac12:   sta $1800                 ;(more data yet not ready)
+                asl                     ;Set CLK low, DATA high
+drv_1800ac12:   sta $1800               ;(more data yet not ready)
 
-drv_senddone:   lda buf                   ;First 2 bytes zero marks end of loading
-                ora buf+1                 ;(3rd byte is the return code)
+                .endif
+
+drv_senddone:   lda buf                 ;First 2 bytes zero marks end of loading
+                ora buf+1               ;(3rd byte is the return code)
                 bne drv_nextsect
-drv_1800ac13:   lda $1800                 ;Set CLK high, preserve DATA
-                and #$02
-drv_1800ac14:   sta $1800
-                lda #$04
-drv_endwaitclk:
-drv_1800ac15:   bit $1800       ;Wait for CLK to go high
-                bne drv_endwaitclk
-                lda #$00        ;Set DATA high
-drv_1800ac16:   sta $1800
                 jmp drvmain
 
-drv_readsector:
+drv_readsector: jsr drv_led
 drv_readtrk:    stx $1000
 drv_readsct:    sty $1000
-                ldy #RETRIES              ;Retry counter
+                ldy #RETRIES            ;Retry counter
 drv_retry:      lda #$80
                 ldx #1
-drv_execjsr:    jsr drv_1541exec          ;Exec buffer 1 job
-                cmp #$02                  ;Error?
+drv_execjsr:    jsr drv_1541exec        ;Exec buffer 1 job
+                cmp #$02                ;Error?
                 bcc drv_success
-drv_skipid:     dey                       ;Decrease retry counter
+drv_skipid:     dey                     ;Decrease retry counter
                 bne drv_retry
-drv_failure:    ldx #$01                  ;Return code $01 - Read error
-drv_success:    sei                       ;Make sure interrupts now disabled
+drv_failure:    ldx #$01                ;Return code $01 - Read error
+drv_success:    sei                     ;Make sure interrupts now disabled
+drv_led:        lda #$08                ;Flash the drive LED
+drv_ledac1:     eor $1c00
+drv_ledac2:     sta $1c00
                 rts
 
 drv_1541exec:   sta $01
-                lda $1c00               ;Led on
-                ora #$08
-                sta $1c00
                 cli                     ;Allow interrupts & execute command
 drv_1541execwait:
                 lda $01
@@ -1262,15 +1596,22 @@ drv_1541execwait:
                 sta iddrv0
                 lda id+1
                 sta iddrv0+1
-                lda $1c00               ;Led off
-                and #$f7
-                sta $1c00
                 pla
                 rts
 
 drv_fdexec:     jsr $ff54               ;FD2000 fix by Ninja
                 lda $03
                 rts
+
+                .if TWOBIT_PROTOCOL>0
+drv_delay18:    cmp ($00,x)
+drv_delay12:    rts
+
+drv_sendtbl:    .byte $0f,$07,$0d,$05
+                .byte $0b,$03,$09,$01
+                .byte $0e,$06,$0c,$04
+                .byte $0a,$02,$08,$00
+                .endif
 
 drv_1541dirtrk: .byte 18
 drv_1541dirsct: .byte 1
@@ -1311,7 +1652,7 @@ filename:       .byte "00*"
 ; Loader configuration
 ;-------------------------------------------------------------------------------
 
-usefastload:    .byte 1                          ;If nonzero, fastloading will
+usefastload:    .byte 0                          ;If nonzero, fastloading will
                                                 ;be used (autoconfigured)
 useserial:      .byte 1                          ;If nonzero, serial protocol
                                                 ;is in use and IRQs can't be
@@ -1327,7 +1668,7 @@ slowirq:        .byte 0                          ;Indicator of whether IRQs are
 ;-------------------------------------------------------------------------------
 ; INITLOADER
 ;
-; Inits the loadersystem. Must only be called only *once* in the beginning.
+; Inits the loadersystem. Must only be called only once in the beginning.
 ;
 ; Parameters: -
 ; Returns: -
@@ -1340,50 +1681,105 @@ initloader:     sta $d07f                       ;Disable SCPU hardware regs
                 sta fastloadstatus              ;Initial fastload status = off
                 sta fileopen                    ;No file initially open
 
-il_detectdrive: lda #<il_drivecode
+                .if TWOBIT_PROTOCOL>0
+                tay
+                sei                             ;Detect PAL/NTSC by measuring
+il_detectntsc1: ldx $d011                       ;greatest rasterline number
+                bmi il_detectntsc1
+il_detectntsc2: ldx $d011
+                bpl il_detectntsc2
+il_detectntsc3: cpy $d012
+                bcs il_detectntsc4
+                ldy $d012
+il_detectntsc4: ldx $d011
+                bmi il_detectntsc3
+                cli
+                cpy #$20
+                bcc il_isntsc
+                lda #$2c                        ;Adjust 2-bit fastload transfer
+                sta fastload_delay              ;delay
+il_isntsc:
+                .endif
+
+
+il_detectdrive: lda #$aa
+                sta $a5
+                lda #<il_drivecode
                 ldx #>il_drivecode
                 ldy #(il_driveend-il_drivecode+MW_LENGTH-1)/MW_LENGTH
-                jsr ifl_begin             ;Upload test-drivecode
-                lda status                ;If serial error here, assume fast
-                and #$ff-$40              ;drive emulation
-                bne il_noserial
-                lda $dd00                 ;Set CLK/DATA low
-                ora #$30
-                sta $dd00
-                lda #<ild_return1
-                ldx #>ild_return1
-                jsr il_getdrivebyte       ;Read test variable
-                cpx #$aa                  ;Drive can execute code, so can
-                beq il_fastloadok         ;use fastloader
-                cpx #$55                  ;See if original byte can be read
-                bne il_noserial           ;back
-                lda $dd00                 ;If CLK/DATA stayed low, it's
-                and #$30                  ;fast drive emulation
-                cmp #$30
-                bne il_serial
-il_noserial:    dec useserial
-il_serial:      rts
+                jsr ifl_begin                   ;Upload test-drivecode
+                lda status                      ;If serial error here, not a
+                cmp #$c0                        ;serial device
+                beq il_noserial
+                ldx #$00
+                ldy #$00
+il_delay:       inx                             ;Delay to make sure the test-
+                bne il_delay                    ;drivecode executed to the end
+                iny
+                bpl il_delay
+                lda fa                          ;Set drive to listen
+                jsr listen
+                lda #$6f
+                jsr second
+                ldx #$05
+il_ddsendmr:    lda il_mrstring,x               ;Send M-R command (backwards)
+                jsr ciout
+                dex
+                bpl il_ddsendmr
+                jsr unlsn
+                lda fa
+                jsr talk
+                lda #$6f
+                jsr tksa
+                lda #$00
+                jsr acptr                       ;First byte: test value
+                pha
+                jsr acptr                       ;Second byte: drive type
+                tax
+                jsr untlk
+                pla
+                cmp #$aa                        ;Drive can execute code, so can
+                beq il_fastloadok               ;use fastloader
+                lda $a5                         ;If serial bus delay counter
+                cmp #$aa                        ;untouched, not a serial device
+                bne il_nofastload
+il_noserial:    dec useserial                   ;Serial bus not used: switch to
+il_nofastload:  rts                             ;"fake" IRQ-loading mode
 
 il_fastloadok:  inc usefastload
-                lda #<ild_return2
-                ldx #>ild_return2
-                jsr il_getdrivebyte       ;Read drivetype
                 stx il_drivetype+1
                 stx drv_drivetype+1-drvstart+drivecode
-                lda il_1800lo,x           ;Perform patching of drivecode
+                lda il_1800lo,x                 ;Perform patching of drivecode
                 sta il_patch1800lo+1
                 lda il_1800hi,x
                 sta il_patch1800hi+1
-                ldy #15
+                .if TWOBIT_PROTOCOL>0
+                txa                             ;For 1MHz drives, need to copy
+                bne il_2mhzdrive                ;the 1MHz transfer code
+                ldy #drv_1mhzsenddone-drv_1mhzsend-1
+il_copy1mhzcode:lda il_drv1mhzsend,y
+                sta drv_2mhzsend-drvstart+drivecode,y
+                dey
+                bpl il_copy1mhzcode
+                ldy #3
+il_copy1mhz1800offsets:
+                lda il_1mhz1800ofs,y            ;Also copy the serial port
+                sta il_2mhz1800ofs,y            ;access offsets
+                dey
+                bpl il_copy1mhz1800offsets
+il_2mhzdrive:   ldy #11
+                .else
+                ldy #12
+                .endif
 il_patchloop:   ldx il_1800ofs,y
-il_patch1800lo: lda #$00                  ;Patch all $1800 accesses
+il_patch1800lo: lda #$00                        ;Patch all $1800 accesses
                 sta drvmain+1-drvstart+drivecode,x
 il_patch1800hi: lda #$00
                 sta drvmain+2-drvstart+drivecode,x
                 dey
                 bpl il_patchloop
 il_drivetype:   ldx #$00
-                lda il_dirtrklo,x        ;Patch directory
+                lda il_dirtrklo,x               ;Patch directory
                 sta drv_dirtrk+1-drvstart+drivecode
                 lda il_dirtrkhi,x
                 sta drv_dirtrk+2-drvstart+drivecode
@@ -1391,11 +1787,11 @@ il_drivetype:   ldx #$00
                 sta drv_dirsct+1-drvstart+drivecode
                 lda il_dirscthi,x
                 sta drv_dirsct+2-drvstart+drivecode
-                lda il_execlo,x          ;Patch job exec address
+                lda il_execlo,x                 ;Patch job exec address
                 sta drv_execjsr+1-drvstart+drivecode
                 lda il_exechi,x
                 sta drv_execjsr+2-drvstart+drivecode
-                lda il_jobtrklo,x        ;Patch job track/sector
+                lda il_jobtrklo,x               ;Patch job track/sector
                 sta drv_readtrk+1-drvstart+drivecode
                 clc
                 adc #$01
@@ -1403,43 +1799,21 @@ il_drivetype:   ldx #$00
                 lda il_jobtrkhi,x
                 sta drv_readtrk+2-drvstart+drivecode
                 adc #$00
-                sta drv_readsct+2-drvstart+drivecode
-                lda il_zp,x              ;Patch zeropage temp usage
+                sta drv_readsct+2-drvstart+drivecode    
+                .if TWOBIT_PROTOCOL=0
+                lda il_zp,x                     ;Patch zeropage temp usage
                 sta drv_zpac1+1-drvstart+drivecode
                 sta drv_zpac2+1-drvstart+drivecode
                 sta drv_zpac3+1-drvstart+drivecode
+                .endif
+                lda il_ledenabled,x             ;Patch LED flashing
+                sta drv_led-drvstart+drivecode
+                lda il_ledbit,x
+                sta drv_led+1-drvstart+drivecode
+                lda il_ledadrhi,x
+                sta drv_ledac1+2-drvstart+drivecode
+                sta drv_ledac2+2-drvstart+drivecode
                 rts
-
-;-------------------------------------------------------------------------------
-; IL_GETDRIVEBYTE
-;
-; Reads a byte from diskdrive memory using M-R
-;
-; Parameters: A,X:Address
-; Returns: X:Byte
-; Modifies: A,X,Y
-;-------------------------------------------------------------------------------
-
-il_getdrivebyte:sta il_mrstring+2
-                stx il_mrstring+1
-                lda fa                    ;Set drive to listen
-                jsr listen
-                lda #$6f
-                jsr second
-                ldx #$05
-il_gdbsendmr:   lda il_mrstring,x         ;Send M-R command (backwards)
-                jsr ciout
-                dex
-                bpl il_gdbsendmr
-                jsr unlsn
-                lda fa
-                jsr talk
-                lda #$6f
-                jsr tksa
-                lda #$00
-                jsr acptr
-                tax
-                jmp untlk
 
 ;-------------------------------------------------------------------------------
 ; IL_DRIVECODE - Drivecode used to detect drive type & test if drivecode
@@ -1449,24 +1823,24 @@ il_gdbsendmr:   lda il_mrstring,x         ;Send M-R command (backwards)
 il_drivecode:
                 .org drvstart
 
-                asl ild_return1           ;Modify first returnvalue to prove
-                                          ;we've executed something :)
-                lda $fea0                 ;Recognize drive family
-                ldx #3                    ;(from Dreamload)
+                asl ild_return1         ;Modify first returnvalue to prove
+                                        ;we've executed something :)
+                lda $fea0               ;Recognize drive family
+                ldx #3                  ;(from Dreamload)
 ild_floop:      cmp ild_family-1,x
                 beq ild_ffound
-                dex                       ;If unrecognized, assume 1541
+                dex                     ;If unrecognized, assume 1541
                 bne ild_floop
                 beq ild_idfound
 ild_ffound:     lda ild_idloclo-1,x
                 sta ild_idlda+1
                 lda ild_idlochi-1,x
                 sta ild_idlda+2
-ild_idlda:      lda $fea4                 ;Recognize drive type
-                ldx #3                    ;3 = CMD HD
-ild_idloop:     cmp ild_id-1,x            ;2 = CMD FD
-                beq ild_idfound           ;1 = 1581
-                dex                       ;0 = 1541
+ild_idlda:      lda $fea4               ;Recognize drive type
+                ldx #3                  ;3 = CMD HD
+ild_idloop:     cmp ild_id-1,x          ;2 = CMD FD
+                beq ild_idfound         ;1 = 1581
+                dex                     ;0 = 1541
                 bne ild_idloop
 ild_idfound:    stx ild_return2
                 rts
@@ -1480,12 +1854,64 @@ ild_return1:    .byte $55
 ild_return2:    .byte 0
 
                 .reloc
-                
+
 il_driveend:
 
-il_mrstring:    .byte 1,$00,$00,"R-M"
+;-------------------------------------------------------------------------------
+; IL_DRV1MHZSEND - 2-bit protocol send code for 1MHz drives
+;-------------------------------------------------------------------------------
 
-il_1800ofs:     .byte drv_1800ac1-drvmain
+                .if TWOBIT_PROTOCOL>0
+il_drv1mhzsend:
+                .org drv_2mhzsend
+
+drv_1mhzsend:   asl
+                and #$0f
+drv_1mhz1800ac8:sta $1800
+                pla
+drv_1mhz1800ac9:sta $1800
+                asl
+                and #$0f
+drv_1mhz1800ac10:
+                sta $1800
+                ldx #$00
+                iny
+                bne drv_sendloop
+                nop
+drv_1mhz1800ac11:
+                stx $1800               ;Finish send: DATA & CLK both high
+                beq drv_senddone
+drv_1mhzsenddone:
+
+                .reloc
+                .endif
+
+il_mrstring:    .byte 2,>ild_return1,<ild_return1,"R-M"
+
+                .if TWOBIT_PROTOCOL>0
+
+il_1800ofs:     .byte drv_1800ac0-drvmain
+                .byte drv_1800ac1-drvmain
+                .byte drv_1800ac2-drvmain
+                .byte drv_1800ac3-drvmain
+                .byte drv_1800ac4-drvmain
+                .byte drv_1800ac5-drvmain
+                .byte drv_1800ac6-drvmain
+                .byte drv_1800ac7-drvmain
+il_2mhz1800ofs: .byte drv_2mhz1800ac8-drvmain
+                .byte drv_2mhz1800ac9-drvmain
+                .byte drv_2mhz1800ac10-drvmain
+                .byte drv_2mhz1800ac11-drvmain
+
+il_1mhz1800ofs: .byte drv_1mhz1800ac8-drvmain
+                .byte drv_1mhz1800ac9-drvmain
+                .byte drv_1mhz1800ac10-drvmain
+                .byte drv_1mhz1800ac11-drvmain
+
+                .else
+
+il_1800ofs:     .byte drv_1800ac0-drvmain
+                .byte drv_1800ac1-drvmain
                 .byte drv_1800ac2-drvmain
                 .byte drv_1800ac3-drvmain
                 .byte drv_1800ac4-drvmain
@@ -1497,10 +1923,8 @@ il_1800ofs:     .byte drv_1800ac1-drvmain
                 .byte drv_1800ac10-drvmain
                 .byte drv_1800ac11-drvmain
                 .byte drv_1800ac12-drvmain
-                .byte drv_1800ac13-drvmain
-                .byte drv_1800ac14-drvmain
-                .byte drv_1800ac15-drvmain
-                .byte drv_1800ac16-drvmain
+
+                .endif
 
 il_1800lo:      .byte <$1800,<$4001,<$4001,<$8000
 il_1800hi:      .byte >$1800,>$4001,>$4001,>$8000
@@ -1516,20 +1940,10 @@ il_exechi:      .byte >drv_1541exec,>$ff54,>drv_fdexec,>$ff4e
 il_jobtrklo:    .byte <$0008,<$000d,<$000d,<$2802
 il_jobtrkhi:    .byte >$0008,>$000d,>$000d,>$2802
 
+                .if TWOBIT_PROTOCOL=0
 il_zp:          .byte $06,$0b,$0b,$06
+                .endif
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+il_ledenabled:  .byte $a9,$a9,$a9,$60
+il_ledbit:      .byte $08,$40,$40,$00
+il_ledadrhi:    .byte $1c,$40,$40,$40
