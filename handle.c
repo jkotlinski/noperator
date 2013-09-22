@@ -142,9 +142,10 @@ static void handle_copy(char ch)
         case CH_F5: /* copy done */
             {
                 char bgcol = *(char*)0xd020;
-                if (!playback_mode)
+                if (!playback_mode) {
                     *(char*)0xd020 = 5;
-                invert_copy_mark();
+                    invert_copy_mark();
+                }
                 // Copies screen to clipboard.
                 memcpy(clipboard, DISPLAY_BASE, 40 * 25);
                 memcpy(clipboard_color, (char*)0xd800, 40 * 25);
