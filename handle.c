@@ -88,22 +88,19 @@ static void paste() {
     // Pastes region.
     for (yi = CLIP_Y1; yi <= CLIP_Y2; ++yi) {
         const char dst_y = y + yi - CLIP_Y1;
-        char xi;
+        char width;
         if (dst_y >= 25) break;
         src_char = clipboard + yi * 40 + CLIP_X1;
         src_color = clipboard_color + yi * 40 + CLIP_X1;
         dst_char = DISPLAY_BASE + dst_y * 40 + x;
         dst_color = (char*)0xd800 + dst_y * 40 + x;
-        for (xi = CLIP_X1; xi <= CLIP_X2; ++xi) {
-            const char dst_x = x + xi - CLIP_X1;
-            if (dst_x >= 40) break;
-            *dst_char = *src_char;
-            *dst_color = *src_color;
-            ++src_char;
-            ++src_color;
-            ++dst_char;
-            ++dst_color;
+        
+        width = CLIP_X2 - CLIP_X1 + 1;
+        if (x + width >= 40) {
+            width = 39 - x;
         }
+        memcpy(dst_char, src_char, width);
+        memcpy(dst_color, src_color, width);
     }
 }
 
