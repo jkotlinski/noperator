@@ -64,14 +64,15 @@ static void invert_copy_mark() {
     }
 }
 
-static char x;
-static char y;
+static char x_;
+static char y_;
+char* charptr = DISPLAY_BASE;
 
 static void start_copy() {
-    CLIP_X1 = x;
-    CLIP_X2 = x;
-    CLIP_Y1 = y;
-    CLIP_Y2 = y;
+    CLIP_X1 = x_;
+    CLIP_X2 = x_;
+    CLIP_Y1 = y_;
+    CLIP_Y2 = y_;
 
     invert_copy_mark();
     copy_mode = 1;
@@ -83,18 +84,20 @@ static void paste() {
     char* src_char = clipboard + CLIP_Y1 * 40 + CLIP_X1;
     /* Assumes clipboard_color is directly after clipboard. */
     char* src_color = src_char + sizeof(clipboard);
-    char* dst_char = DISPLAY_BASE + y * 40 + x;
-    char* dst_color = dst_char + ((char*)0xd800 - DISPLAY_BASE);
+    char* dst_color = charptr + ((char*)0xd800 - DISPLAY_BASE);
+    char* dst_char = charptr;
 
-    if (CLIP_X1 == 0xff) return;
+    if (CLIP_X1 == 0xff) {
+        return;
+    }
 
     height = CLIP_Y2 - CLIP_Y1 + 1;
-    if (y + height >= 25) {
-        height = 24 - y;
+    if (y_ + height >= 25) {
+        height = 24 - y_;
     }
     width = CLIP_X2 - CLIP_X1 + 1;
-    if (x + width >= 40) {
-        width = 39 - x;
+    if (x_ + width >= 40) {
+        width = 39 - x_;
     }
 
     do {
@@ -202,8 +205,9 @@ static void screen_up() {
 }
 
 static char cur_up(char may_move_screen) {
-    if (y) {
-        --y;
+    if (y_) {
+        --y_;
+        charptr -= 40;
     } else if (may_move_screen)
         screen_down();
     else
@@ -212,8 +216,9 @@ static char cur_up(char may_move_screen) {
 }
 
 static char cur_down(char may_move_screen) {
-    if (y != 24) {
-        ++y;
+    if (y_ != 24) {
+        ++y_;
+        charptr += 40;
     } else if (may_move_screen)
         screen_up();
     else
@@ -222,9 +227,10 @@ static char cur_down(char may_move_screen) {
 }
 
 static char cur_left(char may_move_screen) {
-    if (x)
-        --x;
-    else if (may_move_screen)
+    if (x_) {
+        --x_;
+        --charptr;
+    } else if (may_move_screen)
         screen_right();
     else
         return 0;
@@ -232,9 +238,10 @@ static char cur_left(char may_move_screen) {
 }
 
 static char cur_right(char may_move_screen) {
-    if (x != 39)
-        ++x;
-    else if (may_move_screen)
+    if (x_ != 39) {
+        ++x_;
+        ++charptr;
+    } else if (may_move_screen)
         screen_left();
     else
         return 0;
@@ -244,7 +251,6 @@ static char cur_right(char may_move_screen) {
 unsigned char reverse;
 
 static void emit(unsigned char ch) {
-    unsigned int i = y * 40 + x;
     /* calculate screencode */
     if (ch < 0x20) {
         ch ^= 0x80;
@@ -261,8 +267,8 @@ static void emit(unsigned char ch) {
         ch ^= 0x80;
     }
     ch ^= reverse;
-    *(unsigned char*)(0xd800 + i) = color;
-    *(char*)(0x400 + i) = ch;
+    *charptr = ch;
+    *(charptr + 0xd400) = color;
     cur_right(0);
 }
 
@@ -288,7 +294,8 @@ unsigned char handle(unsigned char ch, char first_keypress) {
                    cur_left(0);
                    break;
         case CH_ENTER:
-                   x = 0;
+                   charptr -= x_;
+                   x_ = 0;
                    cur_down(0);
                    break;
         case CH_CURS_RIGHT: return cur_right(first_keypress);
@@ -334,41 +341,32 @@ void handle_rle(unsigned char ch)
 
 unsigned char curx()
 {
-    return x;
+    return x_;
 }
 unsigned char cury()
 {
-    return y;
+    return y_;
 }
 void cursor_home()
 {
-    x = 0;
-    y = 0;
+    x_ = 0;
+    y_ = 0;
+    charptr = DISPLAY_BASE;
 }
 
 // -----
-
-static unsigned int offset() {
-    return cury() * 40 + curx();
-}
-static char* colptr() {
-    return (unsigned char*)(0xd800 + offset());
-}
-static char* charptr() {
-    return (unsigned char*)(0x400 + offset());
-}
 
 static unsigned char hidden_color;
 static unsigned char hidden_char;
 
 void hide_cursor(void) {
-    *charptr() = hidden_char;
-    *colptr() = hidden_color;
+    charptr[0] = hidden_char;
+    charptr[0xd400] = hidden_color;
 }
 
 void show_cursor(void) {
-    hidden_char = *charptr();
-    hidden_color = *colptr();
-    *colptr() = color;
-    *charptr() = *charptr() ^ 0x80u;
+    hidden_char = charptr[0];
+    hidden_color = charptr[0xd400];
+    charptr[0xd400] = color;
+    charptr[0] ^= 0x80u;
 }
