@@ -46,7 +46,7 @@ nop.d64:
 
 nop: 		$(OBJS) $(CLIB) nop.d64
 	@$(LD) -o $@ $(OBJS) $(CLIB)
-	@$(PUCRUNCH) nop nop
+	# @$(PUCRUNCH) -ffast nop nop
 	@for exe in $(EXELIST); do\
 	    $(C1541) -attach nop.d64 -delete $$exe  > /dev/null;\
 	    $(C1541) -attach nop.d64 -write $$exe  > /dev/null;\
