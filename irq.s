@@ -67,6 +67,8 @@ irq1:
     lda #0
     tay
     jsr $1003
+	asl $d019 ; Acknowledge interrupt by clearing VIC interrupt flag.
+    jmp $ea81 ; restore axy, end IRQ
 ret:
 	asl $d019 ; Acknowledge interrupt by clearing VIC interrupt flag.
 	jmp $ea31 ; Jump to standard kernel IRQ service.

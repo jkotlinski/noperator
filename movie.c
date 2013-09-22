@@ -115,8 +115,8 @@ void play_movie()
                 int ch = loader_getc();
                 switch (ch) {
                     case -1:  /* Done. */
-                        cgetc();
                         stopirq();
+                        cgetc();
                         return;
                     case CH_HOME:
                         speed = loader_getc();
