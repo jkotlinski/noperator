@@ -81,8 +81,9 @@ static void paste() {
     char yi;
     char* src_color = clipboard_color + CLIP_Y1 * 40 + CLIP_X1;
     char* src_char = clipboard + CLIP_Y1 * 40 + CLIP_X1;
-    char* dst_color;
-    char* dst_char;
+    char* dst_char = DISPLAY_BASE + y * 40 + x;
+    char* dst_color = (char*)0xd800 + y * 40 + x;
+
     if (CLIP_X1 == 0xff) return;
 
     // Pastes region.
@@ -90,8 +91,6 @@ static void paste() {
         const char dst_y = y + yi - CLIP_Y1;
         char width;
         if (dst_y >= 25) break;
-        dst_char = DISPLAY_BASE + dst_y * 40 + x;
-        dst_color = (char*)0xd800 + dst_y * 40 + x;
         
         width = CLIP_X2 - CLIP_X1 + 1;
         if (x + width >= 40) {
@@ -102,6 +101,8 @@ static void paste() {
 
         src_char += 40;
         src_color += 40;
+        dst_char += 40;
+        dst_color += 40;
     }
 }
 
