@@ -79,8 +79,8 @@ static void start_copy() {
 
 static void paste() {
     char yi;
-    char* src_color;
-    char* src_char;
+    char* src_color = clipboard_color + CLIP_Y1 * 40 + CLIP_X1;
+    char* src_char = clipboard + CLIP_Y1 * 40 + CLIP_X1;
     char* dst_color;
     char* dst_char;
     if (CLIP_X1 == 0xff) return;
@@ -90,8 +90,6 @@ static void paste() {
         const char dst_y = y + yi - CLIP_Y1;
         char width;
         if (dst_y >= 25) break;
-        src_char = clipboard + yi * 40 + CLIP_X1;
-        src_color = clipboard_color + yi * 40 + CLIP_X1;
         dst_char = DISPLAY_BASE + dst_y * 40 + x;
         dst_color = (char*)0xd800 + dst_y * 40 + x;
         
@@ -101,6 +99,9 @@ static void paste() {
         }
         memcpy(dst_char, src_char, width);
         memcpy(dst_color, src_color, width);
+
+        src_char += 40;
+        src_color += 40;
     }
 }
 
