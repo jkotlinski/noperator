@@ -78,24 +78,26 @@ static void start_copy() {
 }
 
 static void paste() {
-    char yi;
-    char* src_color = clipboard_color + CLIP_Y1 * 40 + CLIP_X1;
+    char width;
+    char height;
     char* src_char = clipboard + CLIP_Y1 * 40 + CLIP_X1;
+    /* Assumes clipboard_color is directly after clipboard. */
+    char* src_color = src_char + sizeof(clipboard);
     char* dst_char = DISPLAY_BASE + y * 40 + x;
-    char* dst_color = (char*)0xd800 + y * 40 + x;
+    char* dst_color = dst_char + ((char*)0xd800 - DISPLAY_BASE);
 
     if (CLIP_X1 == 0xff) return;
 
-    // Pastes region.
-    for (yi = CLIP_Y1; yi <= CLIP_Y2; ++yi) {
-        const char dst_y = y + yi - CLIP_Y1;
-        char width;
-        if (dst_y >= 25) break;
-        
-        width = CLIP_X2 - CLIP_X1 + 1;
-        if (x + width >= 40) {
-            width = 39 - x;
-        }
+    height = CLIP_Y2 - CLIP_Y1 + 1;
+    if (y + height >= 25) {
+        height = 24 - y;
+    }
+    width = CLIP_X2 - CLIP_X1 + 1;
+    if (x + width >= 40) {
+        width = 39 - x;
+    }
+
+    do {
         memcpy(dst_char, src_char, width);
         memcpy(dst_color, src_color, width);
 
@@ -103,7 +105,7 @@ static void paste() {
         src_color += 40;
         dst_char += 40;
         dst_color += 40;
-    }
+    } while (--height);
 }
 
 static void handle_copy(char ch)
