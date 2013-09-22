@@ -4,6 +4,7 @@ CC	= cc65 -Or -O --create-dep -Cl -tc64 -T -I $(CC65BASE)/include/
 # CC	= cc65 --create-dep -Cl -tc64 -T -I $(CC65BASE)/include/ 
 AS	= ca65 --cpu 6502x # -l
 LD	= ld65 -C nop.cfg -m nop.map -Ln nop.lbl 
+PUCRUNCH = ~/bin/pucrunch
 C1541  	= ~/bin/c1541
 DEPDIR = .dep
 
@@ -45,6 +46,7 @@ nop.d64:
 
 nop: 		$(OBJS) $(CLIB) nop.d64
 	@$(LD) -o $@ $(OBJS) $(CLIB)
+	@$(PUCRUNCH) nop nop
 	@for exe in $(EXELIST); do\
 	    $(C1541) -attach nop.d64 -delete $$exe  > /dev/null;\
 	    $(C1541) -attach nop.d64 -write $$exe  > /dev/null;\
