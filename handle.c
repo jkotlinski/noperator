@@ -217,6 +217,14 @@ static char cur_up(char may_move_screen) {
     return 1;
 }
 
+static void fast_cur_down() {
+    if (y_ != 24) {
+        ++y_;
+        charptr += 40;
+        colptr += 40;
+    }
+}
+
 static char cur_down(char may_move_screen) {
     if (y_ != 24) {
         ++y_;
@@ -227,6 +235,14 @@ static char cur_down(char may_move_screen) {
     else
         return 0;
     return 1;
+}
+
+static void fast_cur_left() {
+    if (x_) {
+        --x_;
+        --charptr;
+        --colptr;
+    }
 }
 
 static char cur_left(char may_move_screen) {
@@ -315,18 +331,16 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case CH_F4: ++*(char*)0xd021; break;
         case CH_F5: start_copy(); break;
         case CH_F6: paste(); break;
-        case CH_F7: break;
-        case CH_F8: break;
         case CH_DEL:
-                   cur_left(0);
-                   emit(' ');
-                   cur_left(0);
-                   break;
+                fast_cur_left();
+                emit(' ');
+                fast_cur_left();
+                break;
         case CH_ENTER:
                    charptr -= x_;
                    colptr -= x_;
                    x_ = 0;
-                   cur_down(0);
+                   fast_cur_down();
                    break;
         case CH_CURS_RIGHT: return cur_right(first_keypress);
         case CH_CURS_DOWN: return cur_down(first_keypress);
