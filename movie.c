@@ -37,6 +37,7 @@ static struct Movie
     char music_path[16];
     char ticks_per_step;
     char anim_path[16];
+    char font_path[16];
 };
 static struct Movie movie;
 
@@ -57,6 +58,20 @@ void write_movie()
     scratch_movie();
     cbm_save("movie", 8, &movie, sizeof(movie));
     play_movie();
+}
+
+void load_font()
+{
+    unsigned int read;
+    clrscr();
+    textcolor(COLOR_WHITE);
+    ls();
+    cputs("font> ");
+    if (!mygets(movie.font_path)) return;
+    read = cbm_load(movie.font_path, 8, (void*)0x3000);
+    if (!read) return;
+    *(char*)0xd018 &= 0xf0;
+    *(char*)0xd018 |= 0xd;
 }
 
 void load_music()
