@@ -60,18 +60,24 @@ void write_movie()
     play_movie();
 }
 
-void load_font()
+static void do_load_font()
 {
     unsigned int read;
-    clrscr();
-    textcolor(COLOR_WHITE);
-    ls();
-    cputs("font> ");
-    if (!mygets(movie.font_path)) return;
+    if (!movie.font_path[0]) return;
     read = cbm_load(movie.font_path, 8, (void*)0x3000);
     if (!read) return;
     *(char*)0xd018 &= 0xf0;
     *(char*)0xd018 |= 0xd;
+}
+
+void load_font()
+{
+    clrscr();
+    textcolor(COLOR_WHITE);
+    ls();
+    cputs("font> ");
+    if (mygets(movie.font_path))
+        do_load_font();
 }
 
 void load_music()
@@ -101,6 +107,7 @@ void play_movie()
     if (cbm_load("movie", 8, &movie) != sizeof(movie))
         return;
     anim_reset();
+    do_load_font();
     loader_init();
     loader_load(movie.music_path);
     init_music();
