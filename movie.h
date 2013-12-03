@@ -25,7 +25,6 @@ void write_movie();
 void scratch_movie();
 
 void load_music();
-void load_font();
 
 void play_movie();
 
