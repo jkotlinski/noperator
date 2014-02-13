@@ -30,7 +30,3 @@ extern unsigned char color;
 
 void show_cursor();
 void hide_cursor();
-
-void reset_char_handling();
-
-void stop_copying();

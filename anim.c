@@ -41,7 +41,6 @@ void anim_reset() {
     prev_ch = 0;
     run_length = 0;
     color = COLOR_WHITE;
-    reset_char_handling();
     init_screen();
 }
 
@@ -173,7 +172,6 @@ static void editloop(void) {
                     run();
                     break;
                 case CH_F2:
-                    stop_copying();
                     flush_rle();
                     save();
                     run();
