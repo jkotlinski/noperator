@@ -418,3 +418,13 @@ void show_cursor(void) {
     hidden_char = *charptr;
     *charptr ^= 0x80u;
 }
+
+void reset_char_handling() {
+    copy_mode = 0;
+}
+
+void stop_copying() {
+    if (copy_mode) {
+        handle_copy(CH_F5);
+    }
+}
