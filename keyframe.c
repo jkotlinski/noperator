@@ -49,6 +49,9 @@ static char* next_keyframe()
         if (*pos == CH_HOME) {
             return pos;
         }
+        if (*pos == RLE_MARKER) {
+            pos += 2;
+        }
         ++pos;
     }
 }
@@ -136,20 +139,18 @@ static void print_speed()
 
 static void goto_next_keyframe()
 {
-    if (next_keyframe() >= last_char)
+    unsigned char* const end = next_keyframe();
+    if (end >= last_char)
         return;
     restore_screen();
     read_pos += 3;  /* Skips keyframe. */
     for (;;) {
-        char ch = *read_pos;
-        switch (ch) {
-            case CH_HOME:
-                print_speed();
-                return;  /* Done! */
-            default:
-                handle_rle(ch);
-                ++read_pos;
+        if (read_pos == end) {
+            print_speed();
+            return;  /* Done! */
         }
+        handle_rle(*read_pos);
+        ++read_pos;
     }
 }
 
