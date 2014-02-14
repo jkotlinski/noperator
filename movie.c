@@ -40,9 +40,11 @@ static struct Movie
 };
 static struct Movie movie;
 
+#define MOVIE_CONFIG "movie-rc"
+
 void scratch_movie()
 {
-    cbm_open(1, 8, 15, "s:movie");
+    cbm_open(1, 8, 15, "s:" MOVIE_CONFIG);
     cbm_close(1);
 }
 
@@ -55,7 +57,7 @@ void write_movie()
     while (!mygets(movie.anim_path));
     movie.ticks_per_step = ticks_per_step;
     scratch_movie();
-    cbm_save("movie", 8, &movie, sizeof(movie));
+    cbm_save(MOVIE_CONFIG, 8, &movie, sizeof(movie));
     play_movie();
 }
 
@@ -83,7 +85,7 @@ void play_movie()
     unsigned int speed = 0;
     unsigned char rle_left = 0;
 
-    if (cbm_load("movie", 8, &movie) != sizeof(movie))
+    if (cbm_load(MOVIE_CONFIG, 8, &movie) != sizeof(movie))
         return;
     anim_reset();
     loader_init();
