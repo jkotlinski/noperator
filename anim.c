@@ -110,7 +110,7 @@ static void pause_one_clock()
 static void insert_keyframe()
 {
     ++*(char*)0xd020;
-    store_char(0x13);  /* HOME */
+    store_char(CH_HOME);
     store_char(KEYFRAME_SPEED_NONE);
     store_char(KEYFRAME_SPEED_NONE >> 8);
     pause_one_clock();
@@ -123,15 +123,8 @@ static void run() {
     playback_mode = 1;
     anim_reset();
     while (ptr < last_char) {
-        char ch = *ptr;
-        switch (ch) {
-            case 0x13: /* HOME */
-                ptr += 3;  /* skip keyframe */
-                break;
-            default:
-                handle_rle(ch);
-                ++ptr;
-        }
+        handle_rle(*ptr);
+        ++ptr;
     }
     playback_mode = 0;
 }
@@ -179,7 +172,8 @@ static void editloop(void) {
                 case CH_STOP:
                     break;
                 case CH_HOME:
-                    insert_keyframe();
+                    if (!playback_mode)
+                        insert_keyframe();
                     break;
                 case CH_CLR:
                     break;
