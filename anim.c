@@ -76,6 +76,7 @@ static void flush_rle() {
         case 1: do_store(prev_ch);
         case 0: break;
     }
+    run_length = 0;
 }
 
 static void store_char(char ch) {
@@ -120,6 +121,7 @@ static void insert_keyframe()
 
 static void run() {
     char* ptr = KEYS_START;
+    flush_rle();
     playback_mode = 1;
     anim_reset();
     while (ptr < last_char) {
