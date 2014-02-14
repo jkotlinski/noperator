@@ -31,6 +31,7 @@ THE SOFTWARE. }}} */
 #include "fastload.h"
 #include "screen.h"
 
+#define MOVIE_START_MARKER 1
 #define DISPLAY_BASE ((char*)0x400)
 
 unsigned char run_length;
@@ -168,6 +169,10 @@ static void editloop(void) {
             unblink();
             hide_cursor();
             switch (ch) {
+                case MOVIE_START_MARKER:
+                    cursor_home();
+                    color = COLOR_WHITE;
+                    break;
                 case CH_F1:
                     load();
                     run();
@@ -204,6 +209,7 @@ static void editloop(void) {
 void anim_editor(void) {
     init();
     playback_mode = 0;
+    store_char(MOVIE_START_MARKER);
     insert_keyframe();
     editloop();
 }
