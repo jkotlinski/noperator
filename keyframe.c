@@ -125,7 +125,7 @@ static void print_speed()
     print_dec(next_keyframe() - KEYS_START);
     cputc(' ');
     if (speed == KEYFRAME_SPEED_NONE) {
-        cputs("spd? bts?");
+        cputs("spd not set");
     } else {
         cputs("spd:");
         print_fract(speed);
