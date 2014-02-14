@@ -108,10 +108,16 @@ static void pause_one_clock()
     while (now == clock());
 }
 
+static char* run_ptr;
+
 static void insert_keyframe()
 {
+    if (playback_mode) {
+        run_ptr += 2;  // Skips speed.
+        return;
+    }
     ++*(char*)0xd020;
-    store_char(0x13);  /* HOME */
+    store_char(CH_HOME);
     store_char(KEYFRAME_SPEED_NONE);
     store_char(KEYFRAME_SPEED_NONE >> 8);
     pause_one_clock();
@@ -120,20 +126,13 @@ static void insert_keyframe()
 }
 
 static void run() {
-    char* ptr = KEYS_START;
+    run_ptr = KEYS_START;
     flush_rle();
     playback_mode = 1;
     anim_reset();
-    while (ptr < last_char) {
-        char ch = *ptr;
-        switch (ch) {
-            case 0x13: /* HOME */
-                ptr += 3;  /* skip keyframe */
-                break;
-            default:
-                handle_rle(ch);
-                ++ptr;
-        }
+    while (run_ptr < last_char) {
+        handle_rle(*run_ptr);
+        ++run_ptr;
     }
     playback_mode = 0;
 }
