@@ -54,11 +54,16 @@ _startirq:
 	cli
     rts
 
+fail:
+    inc $d020
+    jmp fail
+
 irq1:
     lda playing
     beq ret
 
     inc _ticks
+    beq fail
 
     ; music
     lda $1003
