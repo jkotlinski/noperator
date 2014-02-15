@@ -122,6 +122,11 @@ void play_movie()
                         speed = loader_getc();
                         speed |= loader_getc() << 8;
                         break;
+                    case 0:  /* RLE */
+                        rle_dec(ch);
+                        rle_dec(loader_getc());
+                        rle_left = rle_dec(loader_getc());
+                        break;
                     default:
                         rle_left = rle_dec(ch);
                 }
