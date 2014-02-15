@@ -71,7 +71,7 @@ void load_music()
     if (!mygets(movie.music_path)) return;
     read = cbm_load(movie.music_path, 8, (void*)0x1000);
     if (read == 0) return;
-    if (read > 0x2000) {
+    if (read > 0x1800) {
         cputs("too big:(");
         while (1) ++*(char*)0xd020;
     }
