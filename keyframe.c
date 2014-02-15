@@ -33,7 +33,7 @@ THE SOFTWARE. }}} */
 #include "rledec.h"
 #include "screen.h"
 
-static char* read_pos = KEYS_START;
+static char* read_pos;
 
 #define RLE_MARKER 0
 
@@ -377,6 +377,7 @@ void keyframe_editor(void)
     init_screen();
 
     if (read = prompt_load_anim()) {
+        read_pos = KEYS_START;
         last_char = KEYS_START + read;
     } else {
         return;
