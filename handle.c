@@ -338,8 +338,10 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         }
     } else switch (ch) {
         case MOVIE_START_MARKER:
-            cursor_home();
             init_screen();
+            // Fall through.
+        case 2:
+            cursor_home();
             color = COLOR_WHITE;
             break;
         case CH_F3: ++*(char*)0xd020; break;
