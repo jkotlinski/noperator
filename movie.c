@@ -40,7 +40,7 @@ static struct Movie
 };
 static struct Movie movie;
 
-#define MOVIE_CONFIG "movie-rc"
+#define MOVIE_CONFIG "movrc"
 
 void scratch_movie()
 {

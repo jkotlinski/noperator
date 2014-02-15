@@ -336,6 +336,10 @@ unsigned char handle(unsigned char ch, char first_keypress) {
             reverse ^= 0x80;
         }
     } else switch (ch) {
+        case MOVIE_START_MARKER:
+            cursor_home();
+            color = COLOR_WHITE;
+            break;
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
         case CH_F5: start_copy(); break;
