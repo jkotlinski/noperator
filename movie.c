@@ -128,7 +128,8 @@ void play_movie()
                         rle_left = rle_dec(loader_getc());
                         break;
                     default:
-                        rle_left = rle_dec(ch);
+                        rle_char = ch;
+                        rle_left = 1;
                 }
                 if (rle_left) {
                     handle(rle_char, 1);
