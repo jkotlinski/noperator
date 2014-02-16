@@ -173,15 +173,15 @@ static void handle_copy(char ch)
     }
 }
 
+void screen_left_opt();
 static void screen_left() {
-    char *ch = (char*)0x400;
-    do
-    {
-        memmove(ch, ch + 1, 39);
-        memmove(ch + 0xd400, ch + 0xd401, 39);
+    char *ch = (char*)0x400 + 40;
+    do {
+        *ch = ' ';
         ch += 40;
-        *(ch - 1) = ' ';
     } while (ch < (char*)0x400 + 40 * 25);
+    screen_left_opt();
+    *(char*)(0x400 + 40 * 25 - 1) = ' ';
 }
 
 static void screen_right() {
