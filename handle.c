@@ -184,15 +184,15 @@ static void screen_left() {
     *(char*)(0x400 + 40 * 25 - 1) = ' ';
 }
 
+void screen_right_opt();
 static void screen_right() {
-    char *ch = (char*)0x400;
-    do
-    {
-        memmove(ch + 1, ch, 39);
-        memmove(ch + 0xd401, ch + 0xd400, 39);
+    char *ch = (char*)0x400 + 39;
+    do {
         *ch = ' ';
         ch += 40;
-    } while (ch < (char*)0x400 + 40 * 25);
+    } while (ch < (char*)0x400 + 40 * 25 - 1);
+    screen_right_opt();
+    *(char*)0x400 = ' ';
 }
 
 static void screen_down() {
