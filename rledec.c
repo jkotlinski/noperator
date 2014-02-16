@@ -38,7 +38,7 @@ unsigned char rle_dec(unsigned char ch)
             rle_mode = 2;
             rle_char = ch;
             return 0;
-        case 2:
+        default:
             rle_mode = 0;
             return ch;
     }
