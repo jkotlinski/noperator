@@ -22,6 +22,7 @@ THE SOFTWARE. }}} */
 
 #include <conio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "anim.h"
 #include "disk.h"
@@ -79,6 +80,56 @@ void load_music()
     ticks_per_step = cgetc() - '0';
 }
 
+void pause(int time) {
+    int i = 0;
+    while (++i < time) {}
+}
+
+void fist() {
+    memset((void*)0xd800, 6, 0x300);  // blue
+
+    pause(20000);
+
+    for (;;) {
+        unsigned char i;
+        unsigned char j;
+
+        // Move up.
+        for (j = 0; j < 10; ++j) {
+            char* src = (char*)0x400 + 40 * 4 + 20;
+            char* dst = (char*)0x400 + 40 * 3 + 20;
+            for (i = 0; i < 20; ++i) {
+                memcpy(dst, src, 12);
+                src += 40;
+                dst += 40;
+                if (i == 19)
+                    memset((char*)0x400 + 40 * 23 + 20, ' ', 12);
+                pause(13);
+            }
+        }
+
+        // Move down.
+        for (j = 0; j < 10; ++j) {
+            char* src = (char*)0x400 + 40 * 22 + 20;
+            char* dst = (char*)0x400 + 40 * 23 + 20;
+            for (i = 0; i != 255; ++i) {}
+            for (i = 0; i < 20; ++i) {
+                memcpy(dst, src, 12);
+                src -= 40;
+                dst -= 40;
+            }
+        }
+        
+        for (j = 0; j < 200; ++j) {
+            unsigned char c = *(char*)0xd016;
+            c &= ~7;
+            c |= rand() & 7;
+            *(char*)0xd016 = c;
+        }
+        *(char*)0xd016 &= ~7;
+    }
+}
+
 void play_movie()
 {
     unsigned int acc = 1 << 12;
@@ -115,9 +166,7 @@ void play_movie()
                 int ch = loader_getc();
                 switch (ch) {
                     case -1:  /* Done. */
-                        stopirq();
-                        cgetc();
-                        return;
+                        fist();
                     case CH_HOME:
                         speed = loader_getc();
                         speed |= loader_getc() << 8;
