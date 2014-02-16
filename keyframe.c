@@ -145,7 +145,8 @@ static void goto_next_keyframe()
     if (end >= last_char)
         return;
     restore_screen();
-    read_pos += 3;  /* Skips keyframe. */
+    if (*read_pos == CH_HOME)
+        read_pos += 3;  /* Skips keyframe. */
     for (;;) {
         if (read_pos == end) {
             print_position();
