@@ -166,7 +166,8 @@ static void handle_copy(char ch)
                     CLIP_Y2 = tmp;
                 }
                 copy_mode = 0;
-                *(char*)0xd020 = bgcol;
+                if (!playback_mode)
+                    *(char*)0xd020 = bgcol;
             }
             break;
     }
