@@ -37,13 +37,14 @@ static struct Movie
     char music_path[16];
     char ticks_per_step;
     char anim_path[16];
-    char font_path[16];
 };
 static struct Movie movie;
 
+#define MOVIE_CONFIG "movrc"
+
 void scratch_movie()
 {
-    cbm_open(1, 8, 15, "s:movie");
+    cbm_open(1, 8, 15, "s:" MOVIE_CONFIG);
     cbm_close(1);
 }
 
@@ -56,28 +57,8 @@ void write_movie()
     while (!mygets(movie.anim_path));
     movie.ticks_per_step = ticks_per_step;
     scratch_movie();
-    cbm_save("movie", 8, &movie, sizeof(movie));
+    cbm_save(MOVIE_CONFIG, 8, &movie, sizeof(movie));
     play_movie();
-}
-
-static void do_load_font()
-{
-    unsigned int read;
-    if (!movie.font_path[0]) return;
-    read = cbm_load(movie.font_path, 8, (void*)0x3000);
-    if (!read) return;
-    *(char*)0xd018 &= 0xf0;
-    *(char*)0xd018 |= 0xd;
-}
-
-void load_font()
-{
-    clrscr();
-    textcolor(COLOR_WHITE);
-    ls();
-    cputs("font> ");
-    if (mygets(movie.font_path))
-        do_load_font();
 }
 
 void load_music()
@@ -90,7 +71,7 @@ void load_music()
     if (!mygets(movie.music_path)) return;
     read = cbm_load(movie.music_path, 8, (void*)0x1000);
     if (read == 0) return;
-    if (read > 0x2000) {
+    if (read > 0x1800) {
         cputs("too big:(");
         while (1) ++*(char*)0xd020;
     }
@@ -104,10 +85,9 @@ void play_movie()
     unsigned int speed = 0;
     unsigned char rle_left = 0;
 
-    if (cbm_load("movie", 8, &movie) != sizeof(movie))
+    if (cbm_load(MOVIE_CONFIG, 8, &movie) != sizeof(movie))
         return;
     anim_reset();
-    do_load_font();
     loader_init();
     loader_load(movie.music_path);
     init_music();
@@ -142,8 +122,14 @@ void play_movie()
                         speed = loader_getc();
                         speed |= loader_getc() << 8;
                         break;
+                    case 0:  /* RLE */
+                        rle_dec(0);
+                        rle_dec(loader_getc());
+                        rle_left = rle_dec(loader_getc());
+                        break;
                     default:
-                        rle_left = rle_dec(ch);
+                        rle_char = ch;
+                        rle_left = 1;
                 }
                 if (rle_left) {
                     handle(rle_char, 1);

@@ -33,7 +33,7 @@ THE SOFTWARE. }}} */
 #include "rledec.h"
 #include "screen.h"
 
-static char* read_pos = KEYS_START;
+static char* read_pos;
 
 #define RLE_MARKER 0
 
@@ -48,6 +48,9 @@ static char* next_keyframe()
             return last_char;
         if (*pos == CH_HOME) {
             return pos;
+        }
+        if (*pos == RLE_MARKER) {
+            pos += 2;
         }
         ++pos;
     }
@@ -111,21 +114,13 @@ static void print_beats(unsigned int speed)
     print_dec(keys % TICKS_PER_BEAT);
 }
 
-static void print_speed()
-{
-    unsigned int speed = *(int*)(read_pos + 1);
-
-    if (*read_pos != CH_HOME) return;
-
-    store_screen();
-
-    gotoxy(0, 24);
-    print_dec(read_pos - KEYS_START);
+static void print_speed() {
+    const unsigned int speed = *(int*)(read_pos + 1);
     cputc('-');
     print_dec(next_keyframe() - KEYS_START);
     cputc(' ');
     if (speed == KEYFRAME_SPEED_NONE) {
-        cputs("spd? bts?");
+        cputs("spd not set");
     } else {
         cputs("spd:");
         print_fract(speed);
@@ -134,22 +129,31 @@ static void print_speed()
     }
 }
 
+static void print_position() {
+    store_screen();
+    gotoxy(0, 24);
+    print_dec(read_pos - KEYS_START);
+
+    if (*read_pos == CH_HOME) {
+        print_speed();
+    }
+}
+
 static void goto_next_keyframe()
 {
-    if (next_keyframe() >= last_char)
+    unsigned char* const end = next_keyframe();
+    if (end >= last_char)
         return;
     restore_screen();
-    read_pos += 3;  /* Skips keyframe. */
+    if (*read_pos == CH_HOME)
+        read_pos += 3;  /* Skips keyframe. */
     for (;;) {
-        char ch = *read_pos;
-        switch (ch) {
-            case CH_HOME:
-                print_speed();
-                return;  /* Done! */
-            default:
-                handle_rle(ch);
-                ++read_pos;
+        if (read_pos == end) {
+            print_position();
+            return;  /* Done! */
         }
+        handle_rle(*read_pos);
+        ++read_pos;
     }
 }
 
@@ -191,7 +195,7 @@ static void goto_prev_keyframe()
         }
     }
 
-    print_speed();
+    print_position();
 }
 
 static unsigned char read_digits() {
@@ -234,7 +238,7 @@ static void enter_beats()
     beats = read_digits();
     revers(0);
     calc_speed(beats);
-    print_speed();
+    print_position();
 }
 
 static void goto_next_key()
@@ -253,7 +257,7 @@ static void goto_next_key()
             handle_rle(*read_pos++);
     }
     if (*read_pos == CH_HOME) {
-        print_speed();
+        print_position();
     }
 }
 
@@ -273,7 +277,7 @@ static void insert_keyframe()
     read_pos[1] = KEYFRAME_SPEED_NONE;
     read_pos[2] = KEYFRAME_SPEED_NONE;
     last_char += 3;
-    print_speed();
+    print_position();
 }
 
 static void play_current_segment()
@@ -323,7 +327,7 @@ static void play_current_segment()
 
 static void editloop()
 {
-    print_speed();
+    print_position();
     for (;;) {
         switch (cgetc())
         {
@@ -343,6 +347,7 @@ static void editloop()
                 break;
             case ' ':
                 goto_next_key();
+                print_position();
                 break;
             case ' ' | 0x80:
                 {
@@ -350,6 +355,7 @@ static void editloop()
                     while (--i)
                         goto_next_key();
                 }
+                print_position();
                 break;
             case CH_DEL:
                 delete_keyframe();
@@ -372,6 +378,7 @@ void keyframe_editor(void)
     init_screen();
 
     if (read = prompt_load_anim()) {
+        read_pos = KEYS_START;
         last_char = KEYS_START + read;
     } else {
         return;

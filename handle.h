@@ -30,3 +30,5 @@ extern unsigned char color;
 
 void show_cursor();
 void hide_cursor();
+
+#define MOVIE_START_MARKER 1

@@ -25,6 +25,7 @@ THE SOFTWARE. }}} */
 
 #include "keys.h"
 #include "rledec.h"
+#include "screen.h"
 
 #define RLE_MARKER 0
 
@@ -165,32 +166,33 @@ static void handle_copy(char ch)
                     CLIP_Y2 = tmp;
                 }
                 copy_mode = 0;
-                *(char*)0xd020 = bgcol;
+                if (!playback_mode)
+                    *(char*)0xd020 = bgcol;
             }
             break;
     }
 }
 
+void screen_left_opt();
 static void screen_left() {
-    char *ch = (char*)0x400;
-    do
-    {
-        memmove(ch, ch + 1, 39);
-        memmove(ch + 0xd400, ch + 0xd401, 39);
-        ch += 40;
-        *(ch - 1) = ' ';
-    } while (ch < (char*)0x400 + 40 * 25);
-}
-
-static void screen_right() {
-    char *ch = (char*)0x400;
-    do
-    {
-        memmove(ch + 1, ch, 39);
-        memmove(ch + 0xd401, ch + 0xd400, 39);
+    char *ch = (char*)0x400 + 40;
+    do {
         *ch = ' ';
         ch += 40;
     } while (ch < (char*)0x400 + 40 * 25);
+    screen_left_opt();
+    *(char*)(0x400 + 40 * 25 - 1) = ' ';
+}
+
+void screen_right_opt();
+static void screen_right() {
+    char *ch = (char*)0x400 + 39;
+    do {
+        *ch = ' ';
+        ch += 40;
+    } while (ch < (char*)0x400 + 40 * 25 - 1);
+    screen_right_opt();
+    *(char*)0x400 = ' ';
 }
 
 static void screen_down() {
@@ -336,6 +338,13 @@ unsigned char handle(unsigned char ch, char first_keypress) {
             reverse ^= 0x80;
         }
     } else switch (ch) {
+        case MOVIE_START_MARKER:
+            init_screen();
+            // Fall through.
+        case 2:
+            cursor_home();
+            color = COLOR_WHITE;
+            break;
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
         case CH_F5: start_copy(); break;
