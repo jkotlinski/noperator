@@ -66,7 +66,7 @@ unsigned int prompt_load_anim(void)
     clrscr();
     textcolor(COLOR_WHITE);
     ls();
-    cputs("load> ");
+    cputs("load anim> ");
     if (mygets(buf)) {
         read = cbm_load(buf, 8, KEYS_START);
         if (!read) {
@@ -83,7 +83,7 @@ void prompt_save_anim()
     clrscr();
     textcolor(COLOR_WHITE);
     ls();
-    cputs("save> ");
+    cputs("save anim> ");
     if (!mygets(buf + 2)) return;
     buf[0] = 's';
     buf[1] = ':';
