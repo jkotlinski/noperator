@@ -28,6 +28,7 @@ THE SOFTWARE. }}} */
 #include "fastload.h"
 #include "handle.h"
 #include "irq.h"
+#include "keyframe.h"
 #include "keys.h"
 #include "music.h"
 #include "rledec.h"
@@ -82,7 +83,7 @@ void load_music()
 void play_movie()
 {
     unsigned int acc = 1 << 12;
-    unsigned int speed = 0;
+    unsigned int speed = KEYFRAME_SPEED_NONE;
     unsigned char rle_left = 0;
 
     if (cbm_load(MOVIE_CONFIG, 8, &movie) != sizeof(movie))
