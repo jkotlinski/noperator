@@ -1,11 +1,11 @@
-CRT0   	= $(CC65BASE)/lib/c64.o
-CLIB	= $(CC65BASE)/lib/c64.lib
-CC	= cc65 -Or -O --create-dep -Cl -tc64 -T -I $(CC65BASE)/include/ 
+CRT0   	= $(CC65_HOME)/lib/c64.o
+CLIB	= $(CC65_HOME)/lib/c64.lib
+CC	= cc65 -Or -O --create-dep -Cl -tc64 -T -I $(CC65_HOME)/include/ 
 # CC	= cc65 --create-dep -Cl -tc64 -T -I $(CC65BASE)/include/ 
 AS	= ca65 --cpu 6502x # -l
 LD	= ld65 -C nop.cfg -m nop.map -Ln nop.lbl 
 PUCRUNCH = ~/bin/pucrunch
-C1541  	= ~/bin/c1541
+C1541  	= c1541
 DEPDIR = .dep
 
 
