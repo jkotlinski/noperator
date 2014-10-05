@@ -377,14 +377,13 @@ void keyframe_editor(void)
     unsigned int read;
     init_screen();
 
-    if (read = prompt_load_anim()) {
-        read_pos = KEYS_START;
-        last_char = KEYS_START + read;
-    } else {
-        return;
-    }
+    read = prompt_load_anim();
+
+    if (!read) return;
+
+    read_pos = KEYS_START;
+    last_char = KEYS_START + read;
 
     init_screen();
-
     editloop();
 }
