@@ -115,10 +115,10 @@ void play_movie()
             } else while (1) {
                 int ch = loader_getc();
                 switch (ch) {
-                    case -1:  /* Done. */
-                        stopirq();
-                        cgetc();
-                        return;
+                    case -1:  /* Reached file end, restart. */
+                        loader_open(movie.anim_path);
+                        loader_getc();  /* skip address */
+                        continue;
                     case CH_HOME:
                         speed = loader_getc();
                         speed |= loader_getc() << 8;
