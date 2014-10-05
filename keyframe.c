@@ -378,7 +378,7 @@ void keyframe_editor(void)
     init_screen();
 
     if (read = prompt_load_anim()) {
-        read_pos = KEYS_START + 1;
+        read_pos = KEYS_START;
         last_char = KEYS_START + read;
     } else {
         return;

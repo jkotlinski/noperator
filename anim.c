@@ -204,7 +204,7 @@ static void editloop(void) {
 void anim_editor(void) {
     init();
     playback_mode = 0;
-    store_char(MOVIE_START_MARKER);
     insert_keyframe();
+    store_char(MOVIE_START_MARKER);
     editloop();
 }
