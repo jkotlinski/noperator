@@ -4,11 +4,12 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui multimedia
+CONFIG += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = nopedit
+TARGET = editor
 TEMPLATE = app
 
 
@@ -41,7 +42,26 @@ SOURCES += main.cpp\
     sidplayfp/utils/MD5/MD5.cpp \
     sidplayfp/utils/STILview/stil.cpp \
     sidplayfp/utils/iniParser.cpp \
-    sidplayfp/utils/SidDatabase.cpp
+    sidplayfp/utils/SidDatabase.cpp \
+    sidplayer.cpp \
+    siddevice.cpp \
+    residfp-builder/residfp/resample/SincResampler.cpp \
+    residfp-builder/residfp/Dac.cpp \
+    residfp-builder/residfp/EnvelopeGenerator.cpp \
+    residfp-builder/residfp/ExternalFilter.cpp \
+    residfp-builder/residfp/Filter.cpp \
+    residfp-builder/residfp/Filter6581.cpp \
+    residfp-builder/residfp/Filter8580.cpp \
+    residfp-builder/residfp/FilterModelConfig.cpp \
+    residfp-builder/residfp/Integrator.cpp \
+    residfp-builder/residfp/OpAmp.cpp \
+    residfp-builder/residfp/SID.cpp \
+    residfp-builder/residfp/Spline.cpp \
+    residfp-builder/residfp/version.cc \
+    residfp-builder/residfp/WaveformCalculator.cpp \
+    residfp-builder/residfp/WaveformGenerator.cpp \
+    residfp-builder/residfp-builder.cpp \
+    residfp-builder/residfp-emu.cpp
 
 HEADERS  += mainwindow.h \
     sidplayfp/c64/Banks/Bank.h \
@@ -103,6 +123,36 @@ HEADERS  += mainwindow.h \
     sidplayfp/utils/STILview/stil.h \
     sidplayfp/utils/STILview/stildefs.h \
     sidplayfp/utils/iniParser.h \
-    sidplayfp/utils/SidDatabase.h
+    sidplayfp/utils/SidDatabase.h \
+    sidplayer.h \
+    siddevice.h \
+    residfp-builder/residfp/resample/Resampler.h \
+    residfp-builder/residfp/resample/SincResampler.h \
+    residfp-builder/residfp/resample/TwoPassSincResampler.h \
+    residfp-builder/residfp/resample/ZeroOrderResampler.h \
+    residfp-builder/residfp/array.h \
+    residfp-builder/residfp/Dac.h \
+    residfp-builder/residfp/EnvelopeGenerator.h \
+    residfp-builder/residfp/ExternalFilter.h \
+    residfp-builder/residfp/Filter.h \
+    residfp-builder/residfp/Filter6581.h \
+    residfp-builder/residfp/Filter8580.h \
+    residfp-builder/residfp/FilterModelConfig.h \
+    residfp-builder/residfp/Integrator.h \
+    residfp-builder/residfp/OpAmp.h \
+    residfp-builder/residfp/Potentiometer.h \
+    residfp-builder/residfp/SID.h \
+    residfp-builder/residfp/Spline.h \
+    residfp-builder/residfp/Voice.h \
+    residfp-builder/residfp/WaveformCalculator.h \
+    residfp-builder/residfp/WaveformGenerator.h \
+    residfp-builder/residfp-emu.h \
+    residfp-builder/residfp.h \
+    residfp-builder/residfp/siddefs-fp.h
 
 FORMS    += mainwindow.ui
+
+OTHER_FILES +=
+
+RESOURCES += \
+    resources.qrc

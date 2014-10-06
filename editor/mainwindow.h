@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+class SidPlayer;
+
 namespace Ui {
 class MainWindow;
 }
@@ -17,6 +19,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    SidPlayer* sidPlayer;
 };
 
 #endif // MAINWINDOW_H
