@@ -150,7 +150,8 @@ HEADERS  += mainwindow.h \
     residfp-builder/residfp-emu.h \
     residfp-builder/residfp.h \
     residfp-builder/residfp/siddefs-fp.h \
-    screen.h
+    screen.h \
+    vicpalette.h
 
 FORMS    += mainwindow.ui
 

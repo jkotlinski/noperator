@@ -4,6 +4,9 @@
 #include <QDebug>
 #include <QPainter>
 #include <QPaintEvent>
+#include <QRgb>
+
+#include "vicpalette.h"
 
 Screen::Screen(QWidget *parent) :
     QWidget(parent)
@@ -13,8 +16,10 @@ Screen::Screen(QWidget *parent) :
 void Screen::paintEvent(QPaintEvent *event) {
     (void)event;
     QPainter painter(this);
-    painter.setPen(Qt::green);
-    painter.setBrush(QBrush(Qt::green));
-    painter.drawRect(4, 4, 4, 4);
-
+    for (size_t i = 0; i < 16; ++i) {
+        const QColor color(vicPalette[i]);
+        painter.setPen(color);
+        painter.setBrush(QBrush(color));
+        painter.drawRect(i * 16, 4, 16, 16);
+    }
 }
