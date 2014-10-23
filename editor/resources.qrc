@@ -1,6 +1,7 @@
 <RCC>
-<qresource>
-    <file>kernal.bin</file>
-    <file>packed.prg</file>
-</qresource>
+    <qresource prefix="/">
+        <file>kernal.bin</file>
+        <file>packed.prg</file>
+        <file>charrom.bin</file>
+    </qresource>
 </RCC>
