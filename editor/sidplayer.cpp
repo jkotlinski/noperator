@@ -24,6 +24,14 @@ SidPlayer::SidPlayer()
 
     audioOutput = new QAudioOutput(format);
     sidDevice = new SidDevice;
+}
+
+SidPlayer::~SidPlayer() {
+    delete sidDevice;
+    delete audioOutput;
+}
+
+void SidPlayer::start() {
     sidDevice->start();
     audioOutput->start(sidDevice);
 }

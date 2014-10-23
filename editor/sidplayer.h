@@ -1,5 +1,4 @@
-#ifndef SIDPLAYER_H
-#define SIDPLAYER_H
+#pragma once
 
 class QAudioOutput;
 class SidDevice;
@@ -8,10 +7,11 @@ class SidPlayer
 {
 public:
     SidPlayer();
+    ~SidPlayer();
+
+    void start();
 
 private:
     QAudioOutput* audioOutput;
     SidDevice* sidDevice;
 };
-
-#endif // SIDPLAYER_H

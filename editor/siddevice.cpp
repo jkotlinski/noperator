@@ -49,7 +49,8 @@ SidDevice::SidDevice()
 }
 
 qint64 SidDevice::readData(char* charBuf, qint64 size) {
-    return player->play((short*)charBuf, size / sizeof(short)) * sizeof(short);
+    qint64 ret = player->play((short*)charBuf, size / sizeof(short)) * sizeof(short);
+    return ret;
 }
 
 qint64 SidDevice::writeData(const char*, qint64) {
