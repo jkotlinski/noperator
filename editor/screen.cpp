@@ -39,12 +39,6 @@ void Screen::paintEvent(QPaintEvent *event) {
     (void)event;
     QPainter painter(this);
     painter.scale(width() / 320.f, height() / 200.f);
-    for (size_t i = 0; i < 16; ++i) {
-        const QColor color(vicPalette[i]);
-        painter.setPen(color);
-        painter.setBrush(QBrush(color));
-        painter.drawRect(i * 16, 4, 16, 16);
-    }
 
     int ch = 0;
     for (int y = 0; y < 10; ++y) {
@@ -52,4 +46,8 @@ void Screen::paintEvent(QPaintEvent *event) {
             draw(&painter, x, y, 2, 3, ch++);
         }
     }
+}
+
+QSize Screen::minimumSizeHint() const {
+    return QSize(640, 400);
 }

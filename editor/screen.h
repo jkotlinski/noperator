@@ -10,9 +10,7 @@ public:
 
     void paintEvent(QPaintEvent *event);
 
-    QSize minimumSizeHint() const {
-        return QSize(640, 400);
-    }
+    QSize minimumSizeHint() const;
 
 signals:
 
