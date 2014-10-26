@@ -12,6 +12,8 @@ private:
     int y = 0;
     int fgColor = 1;
     unsigned char reverse = 0;
+    Screen *screen;
 
-    void print(Screen *screen, unsigned char ch);
+    void print(unsigned char ch);
+    void cursorDown();
 };

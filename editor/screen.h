@@ -14,6 +14,8 @@ public:
 
     void init();
 
+    void moveUp();
+
 signals:
 
 public slots:

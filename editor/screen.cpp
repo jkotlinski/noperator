@@ -59,3 +59,7 @@ void Screen::init() {
     memset(fgColor, 0, sizeof(fgColor));
     memset(chars, ' ', sizeof(chars));
 }
+
+void Screen::moveUp() {
+    Q_ASSERT(!"not implemented");
+}
