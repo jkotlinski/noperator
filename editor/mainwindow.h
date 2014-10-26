@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+class Animation;
+class AnimationPlayer;
 class SidPlayer;
 
 namespace Ui {
@@ -19,7 +21,9 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    SidPlayer* sidPlayer;
+    SidPlayer *sidPlayer;
+    Animation *animation;
+    AnimationPlayer *animationPlayer;
 };
 
 #endif // MAINWINDOW_H

@@ -16,4 +16,6 @@ private:
     QByteArray data;
     size_t index = 2;  // Skips adress.
     PutChar *putChar;
+    int speed = 0;
+    int getc();
 };

@@ -9,17 +9,13 @@
 #include "vicpalette.h"
 
 const int borderMargin = 64;
-static int bgColor = 1;
-static unsigned char fgColor[40][25];
-static int borderColor = 2;
-static unsigned char chars[40][25];
 
 Screen::Screen(QWidget *parent) :
     QWidget(parent)
 {
 }
 
-static void draw(QPainter *painter, int column, int row) {
+void Screen::draw(QPainter *painter, int column, int row) {
     static QByteArray charrom;
     if (charrom.isEmpty()) {
         QFile f(":/charrom.bin");
@@ -46,17 +42,20 @@ void Screen::paintEvent(QPaintEvent *event) {
     painter.translate(borderMargin, borderMargin);
     painter.scale((width() - borderMargin * 2) / 320.f, (height() - borderMargin * 2) / 200.f);
 
-    int ch = 0;
     for (int y = 0; y < 25; ++y) {
         for (int x = 0; x < 40; ++x) {
-            chars[x][y] = ch;
-            fgColor[x][y] = ch;
             draw(&painter, x, y);
-            ++ch;
         }
     }
 }
 
 QSize Screen::minimumSizeHint() const {
     return QSize(640 + borderMargin * 2, 400 + borderMargin * 2);
+}
+
+void Screen::init() {
+    bgColor = 0;
+    borderColor = 0;
+    memset(fgColor, 0, sizeof(fgColor));
+    memset(chars, ' ', sizeof(chars));
 }

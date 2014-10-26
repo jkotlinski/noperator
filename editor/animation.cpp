@@ -14,6 +14,18 @@ Animation::Animation()
 }
 
 void Animation::step(Screen *screen) {
-    const unsigned char ch = data.at(index++);
-    putChar->put(screen, ch);
+    const unsigned char ch = getc();
+    switch (ch) {
+    case 0x13:  // HOME
+        speed = getc();
+        speed |= getc() << 8;
+        break;
+    default:
+        putChar->put(screen, ch);
+        break;
+    }
+}
+
+int Animation::getc() {
+    return data.at(index++);
 }

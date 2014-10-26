@@ -62,7 +62,10 @@ SOURCES += main.cpp\
     residfp-builder/residfp/WaveformGenerator.cpp \
     residfp-builder/residfp-builder.cpp \
     residfp-builder/residfp-emu.cpp \
-    screen.cpp
+    screen.cpp \
+    animation.cpp \
+    putchar.cpp \
+    animationplayer.cpp
 
 HEADERS  += mainwindow.h \
     sidplayfp/c64/Banks/Bank.h \
@@ -151,7 +154,10 @@ HEADERS  += mainwindow.h \
     residfp-builder/residfp.h \
     residfp-builder/residfp/siddefs-fp.h \
     screen.h \
-    vicpalette.h
+    vicpalette.h \
+    animation.h \
+    putchar.h \
+    animationplayer.h
 
 FORMS    += mainwindow.ui
 
