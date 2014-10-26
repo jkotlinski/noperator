@@ -23,6 +23,14 @@ void PutChar::put(Screen *screen, unsigned char ch) {
         y = 0;
         fgColor = 1;
         break;
+    case 17:  // Cursor down.
+        break;
+    case 145:  // Cursor up.
+        break;
+    case 157:  // Cursor left.
+        break;
+    case 29:  // Cursor right.
+        break;
     default:
         Q_ASSERT(!"Unhandled character");
         break;

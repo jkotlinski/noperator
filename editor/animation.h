@@ -18,4 +18,7 @@ private:
     PutChar *putChar;
     int speed = 0;
     int getc();
+
+    int rleChar = 0;
+    int rleLeft = 0;
 };
