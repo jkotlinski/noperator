@@ -14,8 +14,12 @@ Animation::Animation()
 }
 
 void Animation::step(Screen *screen) {
+    putChar->setScreen(screen);
+
+    putChar->hideCursor();
+
     if (rleLeft) {
-        putChar->put(screen, rleChar);
+        putChar->put(rleChar);
         --rleLeft;
     } else while (1) {
         const unsigned char ch = getc();
@@ -35,11 +39,13 @@ void Animation::step(Screen *screen) {
             break;
         }
         if (rleLeft) {
-            putChar->put(screen, rleChar);
+            putChar->put(rleChar);
             --rleLeft;
             break;
         }
     }
+
+    putChar->showCursor();
 }
 
 int Animation::getc() {

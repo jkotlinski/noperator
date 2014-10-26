@@ -5,7 +5,14 @@ class Screen;
 class PutChar
 {
 public:
-    void put(Screen *screen, unsigned char ch);
+    void put(unsigned char ch);
+
+    void hideCursor();
+    void showCursor();
+
+    void setScreen(Screen *screen) {
+        this->screen = screen;
+    }
 
 private:
     int x = 0;
@@ -16,4 +23,7 @@ private:
 
     void print(unsigned char ch);
     void cursorDown();
+
+    int hiddenCursorColor = 0;
+    int hiddenCursorChar = 0;
 };

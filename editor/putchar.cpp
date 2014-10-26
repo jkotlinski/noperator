@@ -2,10 +2,7 @@
 
 #include "screen.h"
 
-void PutChar::put(Screen *screen, unsigned char ch) {
-    Q_ASSERT(screen);
-    this->screen = screen;
-
+void PutChar::put(unsigned char ch) {
     if ((ch & 0x70) > 0x10) {
         // Normal char.
         if (ch != (0x80 | ' ')) {
@@ -38,7 +35,7 @@ void PutChar::put(Screen *screen, unsigned char ch) {
 }
 
 void PutChar::print(unsigned char ch) {
-    Q_ASSERT(!"print not implemented");
+   Q_ASSERT(!"print not implemented");
 }
 
 void PutChar::cursorDown() {
@@ -47,4 +44,16 @@ void PutChar::cursorDown() {
     } else {
         screen->moveUp();
     }
+}
+
+void PutChar::hideCursor() {
+    screen->setColor(x, y, hiddenCursorColor);
+    screen->setChar(x, y, hiddenCursorChar);
+}
+
+void PutChar::showCursor() {
+    hiddenCursorColor = screen->getColor(x, y);
+    screen->setColor(x, y, fgColor);
+    hiddenCursorChar = screen->getChar(x, y);
+    screen->setChar(x, y, 0x80 ^ hiddenCursorChar);
 }

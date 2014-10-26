@@ -10,9 +10,10 @@ AnimationPlayer::AnimationPlayer(Animation *animation, Screen *screen)
 }
 
 void AnimationPlayer::start() {
-    timer.start(10);
+    timer.start(1000);
 }
 
 void AnimationPlayer::tick() {
     animation->step(screen);
+    screen->update();  // repaint hopefully not needed
 }

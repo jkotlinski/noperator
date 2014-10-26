@@ -29,7 +29,7 @@ void Screen::draw(QPainter *painter, int column, int row) {
         const char romchar = charrom.at(chars[column][row] * 8 + y % 8);
         for (int x = column * 8; x < column * 8 + 8; ++x) {
             const bool set = (0x80 >> (x % 8)) & romchar;
-            painter->setPen(set ? bg : fg);
+            painter->setPen(set ? fg : bg);
             painter->drawPoint(x, y);
         }
     }
