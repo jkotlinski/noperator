@@ -15,6 +15,8 @@ public:
     void init();
 
     void moveUp();
+    void moveLeft();
+    void moveDown();
 
     void setColor(int x, int y, unsigned char color) {
         Q_ASSERT(x >= 0);

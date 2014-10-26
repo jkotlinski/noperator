@@ -22,12 +22,11 @@ void PutChar::put(unsigned char ch) {
         fgColor = 1;
         break;
     case 17: cursorDown(); break;
-    case 145:  // Cursor up.
-        break;
+    case 145: cursorUp(); break;
     case 157:  // Cursor left.
+        Q_ASSERT(!"unhandled");
         break;
-    case 29:  // Cursor right.
-        break;
+    case 29: cursorRight(); break;
     default:
         Q_ASSERT(!"Unhandled character");
         break;
@@ -39,11 +38,24 @@ void PutChar::print(unsigned char ch) {
 }
 
 void PutChar::cursorDown() {
-    if (y != 24) {
+    if (y != 24)
         ++y;
-    } else {
+    else
         screen->moveUp();
-    }
+}
+
+void PutChar::cursorRight() {
+    if (x != 39)
+        ++x;
+    else
+        screen->moveLeft();
+}
+
+void PutChar::cursorUp() {
+    if (y)
+        --y;
+    else
+        screen->moveDown();
 }
 
 void PutChar::hideCursor() {

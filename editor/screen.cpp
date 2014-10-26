@@ -63,3 +63,11 @@ void Screen::init() {
 void Screen::moveUp() {
     Q_ASSERT(!"not implemented");
 }
+
+void Screen::moveLeft() {
+    Q_ASSERT(!"not implemented");
+}
+
+void Screen::moveDown() {
+    Q_ASSERT(!"not implemented");
+}

@@ -23,6 +23,8 @@ private:
 
     void print(unsigned char ch);
     void cursorDown();
+    void cursorRight();
+    void cursorUp();
 
     int hiddenCursorColor = 0;
     int hiddenCursorChar = 0;
