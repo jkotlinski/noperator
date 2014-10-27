@@ -48,6 +48,14 @@ void PutChar::put(unsigned char ch) {
     case 0x9e: fgColor = 7; break;
     case 0x9f: fgColor = 3; break;
 
+    case 0xd: // Enter.
+        x = 0;
+        if (y != 24)
+            ++y;
+        break;
+
+    case 0x8f: break;  // some trash in some animation
+
     default:
         qDebug() << "Unhandled character " << (int)ch;
         break;
