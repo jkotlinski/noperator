@@ -1,8 +1,22 @@
 #pragma once
 
-#include <QRgb>
+#include <QPen>
 
-static const QRgb vicPalette[16] = {  // Pepto
-  0x000000u, 0xffffffu, 0x68372Bu, 0x70A4B2u, 0x6F3D86u, 0x588D43u, 0x352879u, 0xB8C76Fu,
-  0x6F4F25u, 0x433900u, 0x9A6759u, 0x444444u, 0x6C6C6Cu, 0x9AD284u, 0x6C5EB5u, 0x959595u
+static const QPen vicPens[16] = {  // Pepto
+                                   QColor(0x000000u),
+                                   QColor(0xffffffu),
+                                   QColor(0x68372Bu),
+                                   QColor(0x70A4B2u),
+                                   QColor(0x6F3D86u),
+                                   QColor(0x588D43u),
+                                   QColor(0x352879u),
+                                   QColor(0xB8C76Fu),
+                                   QColor(0x6F4F25u),
+                                   QColor(0x433900u),
+                                   QColor(0x9A6759u),
+                                   QColor(0x444444u),
+                                   QColor(0x6C6C6Cu),
+                                   QColor(0x9AD284u),
+                                   QColor(0x6C5EB5u),
+                                   QColor(0x959595u)
 };

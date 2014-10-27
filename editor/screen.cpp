@@ -23,8 +23,8 @@ void Screen::draw(QPainter *painter, int column, int row) {
         charrom = f.readAll();
         Q_ASSERT(charrom.size() == 2 * 256 * 8);
     }
-    QColor bg(vicPalette[bgColor & 15]);
-    QColor fg(vicPalette[fgColor[column][row] & 15]);
+    const QPen &bg(vicPens[bgColor & 15]);
+    const QPen &fg(vicPens[fgColor[column][row] & 15]);
     for (int y = row * 8; y < row * 8 + 8; ++y) {
         const char romchar = charrom.at(chars[column][row] * 8 + y % 8);
         for (int x = column * 8; x < column * 8 + 8; ++x) {
@@ -38,7 +38,7 @@ void Screen::draw(QPainter *painter, int column, int row) {
 void Screen::paintEvent(QPaintEvent *event) {
     (void)event;
     QPainter painter(this);
-    painter.fillRect(0, 0, width(), height(), vicPalette[borderColor]);
+    painter.fillRect(0, 0, width(), height(), vicPens[borderColor].color());
     painter.translate(borderMargin, borderMargin);
     painter.scale((width() - borderMargin * 2) / 320.f, (height() - borderMargin * 2) / 200.f);
 
