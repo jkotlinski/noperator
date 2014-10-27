@@ -10,7 +10,7 @@ AnimationPlayer::AnimationPlayer(Animation *animation, Screen *screen)
 }
 
 void AnimationPlayer::start() {
-    timer.start(100);
+    timer.start();
 }
 
 void AnimationPlayer::tick() {

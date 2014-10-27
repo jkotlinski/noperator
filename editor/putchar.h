@@ -25,6 +25,7 @@ private:
     void cursorDown();
     void cursorRight();
     void cursorUp();
+    void cursorLeft();
 
     int hiddenCursorColor = 0;
     int hiddenCursorChar = 0;

@@ -71,3 +71,7 @@ void Screen::moveLeft() {
 void Screen::moveDown() {
     Q_ASSERT(!"not implemented");
 }
+
+void Screen::moveRight() {
+    Q_ASSERT(!"not implemented");
+}
