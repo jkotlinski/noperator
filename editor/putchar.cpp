@@ -92,7 +92,8 @@ void PutChar::print(unsigned char ch) {
     screen->setChar(x, y, screencode[ch] ^ reverse);
     screen->setColor(x, y, fgColor);
 
-    cursorRight();
+    if (x != 39)
+        cursorRight();
 }
 
 void PutChar::cursorDown() {

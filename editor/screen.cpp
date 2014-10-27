@@ -61,17 +61,49 @@ void Screen::init() {
 }
 
 void Screen::moveUp() {
-    Q_ASSERT(!"not implemented");
+    for (int x = 0; x < 40; ++x) {
+        for (int y = 0; y < 24; ++y) {
+            chars[x][y] = chars[x][y + 1];
+            fgColor[x][y] = fgColor[x][y + 1];
+        }
+    }
+    for (int x = 0; x < 40; ++x) {
+        chars[x][24] = ' ';
+    }
 }
 
 void Screen::moveLeft() {
-    Q_ASSERT(!"not implemented");
+    for (int x = 0; x < 39; ++x) {
+        for (int y = 0; y < 25; ++y) {
+            chars[x][y] = chars[x + 1][y];
+            fgColor[x][y] = fgColor[x + 1][y];
+        }
+    }
+    for (int y = 0; y < 25; ++y) {
+        chars[39][y] = ' ';
+    }
 }
 
 void Screen::moveDown() {
-    Q_ASSERT(!"not implemented");
+    for (int x = 0; x < 40; ++x) {
+        for (int y = 24; y > 0; --y) {
+            chars[x][y] = chars[x][y - 1];
+            fgColor[x][y] = fgColor[x][y - 1];
+        }
+    }
+    for (int x = 0; x < 40; ++x) {
+        chars[x][0] = ' ';
+    }
 }
 
 void Screen::moveRight() {
-    Q_ASSERT(!"not implemented");
+    for (int x = 39; x > 0; --x) {
+        for (int y = 0; y < 25; ++y) {
+            chars[x][y] = chars[x - 1][y];
+            fgColor[x][y] = fgColor[x - 1][y];
+        }
+    }
+    for (int y = 0; y < 25; ++y) {
+        chars[0][y] = ' ';
+    }
 }
