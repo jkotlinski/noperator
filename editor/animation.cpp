@@ -22,8 +22,10 @@ void Animation::step(Screen *screen) {
         putChar->put(rleChar);
         --rleLeft;
     } else while (1) {
-        const unsigned char ch = getc();
+        const int ch = getc();
         switch (ch) {
+        case -1:  // Done!
+            return;
         case 0:  // RLE
             rleChar = getc();
             rleLeft = getc();
@@ -49,5 +51,7 @@ void Animation::step(Screen *screen) {
 }
 
 int Animation::getc() {
+    if (index == data.size())
+        return -1;
     return static_cast<unsigned char>(data.at(index++));
 }
