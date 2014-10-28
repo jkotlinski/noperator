@@ -15,7 +15,7 @@ Screen::Screen(QWidget *parent) :
 {
 }
 
-void Screen::draw(QPainter *painter, int column, int row) {
+void Screen::draw(QImage *image, int column, int row) {
     static QByteArray charrom;
     if (charrom.isEmpty()) {
         QFile f(":/charrom.bin");
@@ -23,30 +23,32 @@ void Screen::draw(QPainter *painter, int column, int row) {
         charrom = f.readAll();
         Q_ASSERT(charrom.size() == 2 * 256 * 8);
     }
-    const QPen &bg(vicPens[bgColor & 15]);
-    const QPen &fg(vicPens[fgColor[column][row] & 15]);
+    const QRgb bg(vicPalette[bgColor & 15]);
+    const QRgb fg(vicPalette[fgColor[column][row] & 15]);
     for (int y = row * 8; y < row * 8 + 8; ++y) {
         const char romchar = charrom.at(chars[column][row] * 8 + y % 8);
         for (int x = column * 8; x < column * 8 + 8; ++x) {
             const bool set = (0x80 >> (x % 8)) & romchar;
-            painter->setPen(set ? fg : bg);
-            painter->drawPoint(x, y);
+            image->setPixel(x, y, set ? fg : bg);
         }
     }
 }
 
 void Screen::paintEvent(QPaintEvent *event) {
     (void)event;
-    QPainter painter(this);
-    painter.fillRect(0, 0, width(), height(), vicPens[borderColor].color());
-    painter.translate(borderMargin, borderMargin);
-    painter.scale((width() - borderMargin * 2) / 320.f, (height() - borderMargin * 2) / 200.f);
 
+    QImage image(320, 200, QImage::Format_RGB32);
     for (int y = 0; y < 25; ++y) {
         for (int x = 0; x < 40; ++x) {
-            draw(&painter, x, y);
+            draw(&image, x, y);
         }
     }
+
+    QPainter painter(this);
+    painter.fillRect(0, 0, width(), height(), vicPalette[borderColor]);
+    painter.translate(borderMargin, borderMargin);
+    painter.scale((width() - borderMargin * 2) / 320.f, (height() - borderMargin * 2) / 200.f);
+    painter.drawImage(0, 0, image);
 }
 
 QSize Screen::minimumSizeHint() const {
