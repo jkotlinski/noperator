@@ -89,10 +89,8 @@ static void store_char(char ch) {
     }
 }
 
-static void run();
-
 static void save() {
-    prompt_save_anim(last_char - KEYS_START);
+    prompt_save_anim();
 }
 
 static void load()

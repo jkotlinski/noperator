@@ -23,12 +23,12 @@ void handle_rle(unsigned char ch);
 
 extern char playback_mode;  // if set, some UI operations will be disabled
 
-void cursor_home();
-unsigned char curx();
-unsigned char cury();
+void cursor_home(void);
+unsigned char curx(void);
+unsigned char cury(void);
 extern unsigned char color;
 
-void show_cursor();
-void hide_cursor();
+void show_cursor(void);
+void hide_cursor(void);
 
 #define MOVIE_START_MARKER 1

@@ -21,7 +21,6 @@ THE SOFTWARE. }}} */
 #ifndef KEYS_H
 #define KEYS_H
 
-#define CH_HOME 0x13
 #define CH_CLR 0x93
 
 #define CH_LEFTARROW 0x53

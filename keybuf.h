@@ -21,8 +21,8 @@ THE SOFTWARE. }}} */
 #ifndef KEYBUF_H
 #define KEYBUF_H
 
-extern unsigned char _RAM_LAST__;  /* Defined by linker. */
-#define KEYS_START (&_RAM_LAST__ + 1)
+extern unsigned char _MAIN_LAST__;  /* Defined by linker. */
+#define KEYS_START (&_MAIN_LAST__ + 1)
 extern unsigned char* last_char;
 
 #endif  /* KEYBUF_H */

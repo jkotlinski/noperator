@@ -31,7 +31,7 @@ THE SOFTWARE. }}} */
 
 static char copy_mode;
 
-static unsigned char color = COLOR_WHITE;
+unsigned char color = COLOR_WHITE;
 static char clipboard[40 * 25];
 static char clipboard_color[40 * 25];
 
