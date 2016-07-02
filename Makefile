@@ -32,7 +32,7 @@ all:   	nop
 	@$(AS) $(basename $<).s
 
 OBJS = main.o keyframe.o anim.o irq.o loader.o fastload.o screen.o disk.o keybuf.o keyhandler.o rledec.o music.o \
-	   movie.o opt.o font.o rotchars.o
+	   movie.o opt.o font.o rotchars.o rotchars_p.o
 
 -include $(OBJS:%.o=$(DEPDIR)/%.u)
 

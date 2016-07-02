@@ -2,35 +2,36 @@
 
 #include <string.h>
 
-static unsigned char dirs[16];
-static unsigned char screencodes[16];
+unsigned char rotchar_dirs[16];
+unsigned char rotchar_screencodes[16];
 
 void rotate_char(unsigned char screencode, unsigned char dir) {
     unsigned char i = 0;
 
     // If ch is already in the table, update the direction.
-    for (; i < sizeof(dirs); ++i) {
-        if (screencodes[i] == screencode) {
-            dirs[i] = dir;
+    for (; i < sizeof(rotchar_dirs); ++i) {
+        if (rotchar_screencodes[i] == screencode) {
+            rotchar_dirs[i] = dir;
             return;
         }
     }
     // Find an empty spot in table and take it.
-    for (i = 0; i < sizeof(dirs); ++i) {
-        if (dirs[i] == 0) {
-            dirs[i] = dir;
-            screencodes[i] = screencode;
+    for (i = 0; i < sizeof(rotchar_dirs); ++i) {
+        if (rotchar_dirs[i] == 0) {
+            rotchar_dirs[i] = dir;
+            rotchar_screencodes[i] = screencode;
             return;
         }
     }
 }
 
 void stop_char_rotations() {
-    memset(dirs, 0, sizeof(dirs));
+    memset(rotchar_dirs, 0, sizeof(rotchar_dirs));
 }
 
 // -----
 
+#if 0
 static void up(unsigned char* ptr) {
     unsigned char tmp = ptr[0];
     ptr[0] = ptr[1];
@@ -89,13 +90,14 @@ static void left(unsigned char* ptr) {
 
 void tick_rotate_chars() {
     unsigned char i = 0;
-    for (i = 0; i < sizeof(dirs); ++i) {
+    ++*(char*)0xd020;
+    for (i = 0; i < sizeof(rotchar_dirs); ++i) {
         unsigned char* ptr;
-        unsigned char dir = dirs[i];
+        unsigned char dir = rotchar_dirs[i];
         if (!dir) {
             continue;
         }
-        ptr = (unsigned char*)0x2800 + 8 * screencodes[i];
+        ptr = (unsigned char*)0x2800 + 8 * rotchar_screencodes[i];
         switch (dir) {
             case 1: up(ptr); break;
             case 2: right(ptr); break;
@@ -103,4 +105,6 @@ void tick_rotate_chars() {
             case 4: left(ptr); break;
         }
     }
+    --*(char*)0xd020;
 }
+#endif
