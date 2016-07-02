@@ -6,4 +6,6 @@ void rotate_char(unsigned char screencode, unsigned char dir);
 
 void stop_char_rotations(void);
 
+void tick_rotate_chars(void);
+
 #endif

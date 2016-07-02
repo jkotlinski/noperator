@@ -18,7 +18,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. }}} */
 
-void __fastcall__ startirq(void);
-void __fastcall__ stopirq(void);
+void __fastcall__ setup_irq(void);
+void __fastcall__ start_playing(void);
+void __fastcall__ stop_playing(void);
 
 extern volatile unsigned char ticks;

@@ -97,7 +97,7 @@ void play_movie()
     loader_getc();  /* skip address */
 
     ticks = 0;
-    startirq();
+    start_playing();
     while (1) {
         /* Wait for tick. */
         if (!ticks) {

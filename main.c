@@ -21,6 +21,7 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 
 #include "anim.h"
+#include "irq.h"
 #include "keyframe.h"
 #include "movie.h"
 #include "music.h"
@@ -49,6 +50,7 @@ void main_menu(void) {
 }
 
 void main(void) {
+    setup_irq();
     play_movie();
     main_menu();
 }

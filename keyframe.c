@@ -287,7 +287,7 @@ static void play_current_segment()
     char* const end = next_keyframe();
     unsigned char rle_left = 0;
     init_music();
-    startirq();
+    start_playing();
 
     ticks = 0;
 
@@ -308,7 +308,7 @@ static void play_current_segment()
                 --rle_left;
             } else while (1) {
                 if (read_pos == end) {
-                    stopirq();
+                    stop_playing();
                     goto_prev_keyframe();
                     return;
                 }

@@ -18,17 +18,20 @@
 ;OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ;THE SOFTWARE. }}}
 
-.export _startirq
-.export _stopirq
+.export _setup_irq
+.export _start_playing
+.export _stop_playing
 .export _ticks
+
+.import _tick_rotate_chars
 
 _ticks:
     .byte 0
 
 playing:
-    .byte 1
+    .byte 0
 
-_startirq:
+_setup_irq:
     sei
     lda #>irq1
     sta $0315
@@ -46,7 +49,6 @@ _startirq:
 	; Enable raster interrupt from VIC.
     lda #$01
     sta $d01a
-    sta playing
 
 	; Set raster pos for IRQ.
     lda #$ff
@@ -54,11 +56,17 @@ _startirq:
 	cli
     rts
 
+_start_playing:
+    inc playing
+    rts
+
 fail:
     inc $d020
     jmp fail
 
 irq1:
+    jsr _tick_rotate_chars
+
     lda playing
     beq ret
 
@@ -78,7 +86,7 @@ ret:
 	asl $d019 ; Acknowledge interrupt by clearing VIC interrupt flag.
 	jmp $ea31 ; Jump to standard kernel IRQ service.
 
-_stopirq:
+_stop_playing:
     lda #0
     sta playing
     sta $d404 ; turn off SID
