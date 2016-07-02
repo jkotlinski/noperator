@@ -30,6 +30,7 @@ THE SOFTWARE. }}} */
 #include "keys.h"
 #include "fastload.h"
 #include "screen.h"
+#include "char-rot.h"
 
 #define DISPLAY_BASE ((char*)0x400)
 
@@ -42,6 +43,7 @@ void anim_reset() {
     run_length = 0;
     color = COLOR_WHITE;
     init_screen();
+    stop_char_rotations();
 }
 
 static void init(void) {

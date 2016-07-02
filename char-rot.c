@@ -1,13 +1,15 @@
 #include "char-rot.h"
 
+#include <string.h>
+
 static unsigned char dirs[16];
 static unsigned char chars[16];
 
 void rotate_char(unsigned char ch, unsigned char dir) {
-    unsigned char i;
+    unsigned char i = 0;
 
-    // If the char is already in the table, update the direction.
-    for (i = 0; i < sizeof(dirs); ++i) {
+    // If ch is already in the table, update the direction.
+    for (; i < sizeof(dirs); ++i) {
         if (chars[i] == ch) {
             dirs[i] = dir;
             return;
@@ -16,9 +18,13 @@ void rotate_char(unsigned char ch, unsigned char dir) {
     // Find an empty spot in table and take it.
     for (i = 0; i < sizeof(dirs); ++i) {
         if (dirs[i] == 0) {
-            chars[i] = ch;
             dirs[i] = dir;
+            chars[i] = ch;
             return;
         }
     }
+}
+
+void stop_char_rotations() {
+    memset(dirs, 0, sizeof(dirs));
 }

@@ -4,4 +4,6 @@
 /* dir: 0 = Off, 1 = Up, 2 = Right, 3 = Down, 4 = Left */
 void rotate_char(unsigned char ch, unsigned char dir);
 
+void stop_char_rotations(void);
+
 #endif

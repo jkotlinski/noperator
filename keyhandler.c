@@ -23,6 +23,7 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 #include <string.h>
 
+#include "char-rot.h"
 #include "keys.h"
 #include "rledec.h"
 #include "screen.h"
@@ -69,6 +70,14 @@ static char x_;
 static char y_;
 static char* charptr = DISPLAY_BASE;
 static char* colptr = (char*)0xd800;
+
+/*  0 = nothing pending
+ *  1 = up
+ *  2 = right
+ *  3 = down
+ *  4 = left
+ *  5 = stop  */
+static unsigned char pending_char_rotate;
 
 static void start_copy() {
     CLIP_X1 = x_;
@@ -329,8 +338,11 @@ unsigned char handle(unsigned char ch, char first_keypress) {
     }
 
     if ((ch & 0x70) > 0x10) {
-        /* Normal char */
-        if (ch != (0x80 | ' ')) {
+        if (pending_char_rotate) {
+            rotate_char(ch, pending_char_rotate % 5);
+            pending_char_rotate = 0;
+        } else if (ch != (0x80 | ' ')) {
+            /* Normal char */
             emit(ch);
         } else {
             reverse ^= 0x80;
@@ -349,6 +361,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case CH_F4: ++*(char*)0xd021; break;
         case CH_F5: start_copy(); break;
         case CH_F6: paste(); break;
+        case CH_F7: ++pending_char_rotate; break;
         case CH_DEL:
                 fast_cur_left();
                 emit(' ');
