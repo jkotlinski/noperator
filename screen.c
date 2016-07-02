@@ -24,6 +24,7 @@ void init_screen()
 {
     *(char*)0xd020 = 0;
     *(char*)0xd021 = 0;
-    *(char*)0xd018 &= ~2;  // uppercase + gfx
+    // screen = $400, font = $2800
+    *(char*)0xd018 = 0x1a;
     memset((char*)0x400, ' ', 40 * 25);
 }
