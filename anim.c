@@ -30,7 +30,7 @@ THE SOFTWARE. }}} */
 #include "keys.h"
 #include "fastload.h"
 #include "screen.h"
-#include "char-rot.h"
+#include "rotchars.h"
 
 #define DISPLAY_BASE ((char*)0x400)
 

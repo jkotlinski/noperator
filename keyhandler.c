@@ -23,7 +23,7 @@ THE SOFTWARE. }}} */
 #include <conio.h>
 #include <string.h>
 
-#include "char-rot.h"
+#include "rotchars.h"
 #include "keys.h"
 #include "rledec.h"
 #include "screen.h"
