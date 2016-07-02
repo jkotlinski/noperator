@@ -26,7 +26,7 @@ THE SOFTWARE. }}} */
 #include "anim.h"
 #include "disk.h"
 #include "fastload.h"
-#include "handle.h"
+#include "keyhandler.h"
 #include "irq.h"
 #include "keyframe.h"
 #include "keys.h"

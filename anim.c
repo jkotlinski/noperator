@@ -24,7 +24,7 @@ THE SOFTWARE. }}} */
 #include <time.h>
 
 #include "disk.h"
-#include "handle.h"
+#include "keyhandler.h"
 #include "keybuf.h"
 #include "keyframe.h"
 #include "keys.h"

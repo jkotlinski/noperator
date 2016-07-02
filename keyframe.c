@@ -25,7 +25,7 @@ THE SOFTWARE. }}} */
 #include <string.h>
 
 #include "disk.h"
-#include "handle.h"
+#include "keyhandler.h"
 #include "irq.h"
 #include "keybuf.h"
 #include "keys.h"
