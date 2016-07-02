@@ -29,7 +29,7 @@ loop:
     cmp #1
     beq up
     cmp #2
-    ; beq right
+    beq right
     cmp #3
     ; beq down
 
@@ -39,6 +39,18 @@ continue:
     dey
     bpl loop
     rts
+
+right:
+    ldy #7
+@loop:
+    lda (ptr1),y
+    lsr a
+    bcc :+
+    ora #$80
+:   sta (ptr1),y
+    dey
+    bpl @loop
+    jmp continue
 
 up:
     ldy ptr1
