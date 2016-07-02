@@ -33,7 +33,22 @@ loop:
     cmp #3
     beq down
 
-    ; left TODO
+    ; left
+    tya
+    tax
+
+    ldy #7
+@loop:
+    lda (ptr1),y
+    asl a
+    bcc :+
+    ora #1
+:   sta (ptr1),y
+    dey
+    bpl @loop
+
+    txa
+    tay
 
 continue:
     dey
