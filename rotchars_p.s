@@ -5,7 +5,21 @@
 .import _rotchar_screencodes
 .importzp ptr1, ptr2
 
+ptr1_save:
+    .word 0
+ptr2_save:
+    .word 0
+
 _tick_rotate_chars:
+    lda ptr1
+    sta ptr1_save
+    lda ptr1 + 1
+    sta ptr1_save + 1
+    lda ptr2
+    sta ptr2_save
+    lda ptr2 + 1
+    sta ptr2_save + 1
+
     ldy #$f
 loop:
     lda _rotchar_dirs, y
@@ -53,6 +67,15 @@ loop:
 continue:
     dey
     bpl loop
+
+    lda ptr1_save
+    sta ptr1
+    lda ptr1_save + 1
+    sta ptr1 + 1
+    lda ptr2_save
+    sta ptr2
+    lda ptr2_save + 1
+    sta ptr2 + 1
     rts
 
 right:
