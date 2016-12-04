@@ -98,8 +98,10 @@ static void save() {
 static void load()
 {
     unsigned int read = prompt_load_anim();
-    if (read)
+    if (read) {
         last_char = KEYS_START + read;
+        anim_reset();
+    }
 }
 
 static void pause_one_clock()
