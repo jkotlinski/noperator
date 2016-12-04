@@ -103,12 +103,13 @@ static void paste() {
     }
 
     height = CLIP_Y2 - CLIP_Y1 + 1;
-    if (y_ + height >= 25) {
-        height = 24 - y_;
+    if (y_ + height > 25) {
+        height = 25 - y_;
     }
+
     width = CLIP_X2 - CLIP_X1 + 1;
-    if (x_ + width >= 40) {
-        width = 39 - x_;
+    if (x_ + width > 40) {
+        width = 40 - x_;
     }
 
     do {
