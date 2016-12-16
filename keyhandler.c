@@ -71,14 +71,6 @@ static char y_;
 static char* charptr = DISPLAY_BASE;
 static char* colptr = (char*)0xd800;
 
-/*  0 = nothing pending
- *  1 = up
- *  2 = right
- *  3 = down
- *  4 = left
- *  5 = stop  */
-static unsigned char pending_char_rotate;
-
 static void start_copy() {
     CLIP_X1 = x_;
     CLIP_X2 = x_;
@@ -334,16 +326,36 @@ static void emit(unsigned char ch) {
 
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
+    /*  0 = nothing
+     *  1 = getting direction
+     *  2 = getting speed
+     *  3 = getting char */
+    static unsigned char char_rotate_state;
+
     if (copy_mode) {
         handle_copy(ch);
         return 1;
     }
 
-    if ((ch & 0x70) > 0x10) {
-        if (pending_char_rotate) {
-            rotate_char(screencode[ch], pending_char_rotate % 5);
-            pending_char_rotate = 0;
-        } else if (ch != (0x80 | ' ')) {
+    if (char_rotate_state) {
+        static unsigned char direction;
+        static unsigned char speed;
+        switch (char_rotate_state) {
+            case 1:
+                direction = ch;
+                ++char_rotate_state;
+                break;
+            case 2:
+                speed = ch - '0';
+                ++char_rotate_state;
+                break;
+            default:
+                rotate_char(screencode[ch], direction, speed);
+                char_rotate_state = 0;
+                break;
+        }
+    } else if ((ch & 0x70) > 0x10) {
+        if (ch != (0x80 | ' ')) {
             /* Normal char */
             emit(ch);
         } else {
@@ -363,7 +375,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case CH_F4: ++*(char*)0xd021; break;
         case CH_F5: start_copy(); break;
         case CH_F6: paste(); break;
-        case CH_F7: ++pending_char_rotate; break;
+        case CH_F7: ++char_rotate_state; break;
         case CH_DEL:
                 fast_cur_left();
                 emit(' ');

@@ -3,12 +3,15 @@
 
 .import _rotchar_dirs
 .import _rotchar_screencodes
+.import _rotchar_periods
 .importzp ptr1, ptr2
 
 ptr1_save:
     .word 0
 ptr2_save:
     .word 0
+ticks:
+    .byte 0
 
 _tick_rotate_chars:
     lda ptr1
@@ -20,11 +23,16 @@ _tick_rotate_chars:
     lda ptr2 + 1
     sta ptr2_save + 1
 
+    inc ticks
+
     ldy #$f
 loop:
     lda _rotchar_dirs, y
     beq continue
     tax
+    lda _rotchar_periods, y
+    and ticks
+    bne continue
 
     lda #(($2800 / 8) >> 8)
     sta ptr1 + 1
@@ -40,11 +48,11 @@ loop:
     rol ptr1 + 1
 
     txa  ; a = direction
-    cmp #1
+    cmp #145
     beq up
-    cmp #2
+    cmp #29
     beq right
-    cmp #3
+    cmp #17
     beq down
 
     ; left

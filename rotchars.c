@@ -4,6 +4,7 @@
 
 unsigned char rotchar_dirs[16];
 unsigned char rotchar_screencodes[16];
+unsigned char rotchar_periods[16];
 extern unsigned char _FONTRAM_START__;
 
 static void reset(unsigned char screencode) {
@@ -17,14 +18,20 @@ static void reset(unsigned char screencode) {
     asm("cli");
 }
 
-void rotate_char(unsigned char screencode, unsigned char dir) {
+void rotate_char(unsigned char screencode, unsigned char dir, unsigned char speed) {
     unsigned char i = 0;
+    unsigned char period = (0xff >> (9 - speed));
+
+    if (!speed) {
+        dir = 0;
+    }
 
     // If ch is already in the table, update the direction.
     for (; i < sizeof(rotchar_dirs); ++i) {
         if (rotchar_screencodes[i] == screencode) {
             rotchar_dirs[i] = dir;
-            if (!dir) {
+            rotchar_periods[i] = period;
+            if (!speed) {
                 reset(screencode);
             }
             return;
@@ -34,6 +41,7 @@ void rotate_char(unsigned char screencode, unsigned char dir) {
     for (i = 0; i < sizeof(rotchar_dirs); ++i) {
         if (rotchar_dirs[i] == 0) {
             rotchar_dirs[i] = dir;
+            rotchar_periods[i] = period;
             rotchar_screencodes[i] = screencode;
             return;
         }
