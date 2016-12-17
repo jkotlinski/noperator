@@ -342,10 +342,6 @@ static void emit(unsigned char ch) {
 
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
-    /*  0 = idle
-     *  1 = getting command
-     *  2 = rotchar speed
-     *  3 = rotchar char */
     static unsigned char f7_state;
 
     if (copy_mode) {
@@ -369,9 +365,10 @@ unsigned char handle(unsigned char ch, char first_keypress) {
                     case 'm':
                     case 'M':
                         mirror_x = mirror_x ? 0 : x_ * 2 + (ch == 'M');
+                        // Fall through.
+                    default:
                         f7_state = F7_STATE_IDLE;
                         break;
-                    default: f7_state = F7_STATE_IDLE; break;
                 }
                 break;
             case F7_STATE_GET_ROTCHAR_SPEED:
