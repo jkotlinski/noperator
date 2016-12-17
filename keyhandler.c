@@ -324,34 +324,49 @@ static void emit(unsigned char ch) {
 
 #define switch_color(col) color = col;
 
+#define F7_STATE_IDLE               0
+#define F7_STATE_GET_COMMAND        1
+#define F7_STATE_GET_ROTCHAR_SPEED  2
+#define F7_STATE_GET_ROTCHAR_CHAR   3
+
 /* returns 1 if ch should be stored in stream */
 unsigned char handle(unsigned char ch, char first_keypress) {
-    /*  0 = nothing
-     *  1 = getting direction
-     *  2 = getting speed
-     *  3 = getting char */
-    static unsigned char char_rotate_state;
+    /*  0 = idle
+     *  1 = getting command
+     *  2 = rotchar speed
+     *  3 = rotchar char */
+    static unsigned char f7_state;
 
     if (copy_mode) {
         handle_copy(ch);
         return 1;
     }
 
-    if (char_rotate_state) {
-        static unsigned char direction;
-        static unsigned char speed;
-        switch (char_rotate_state) {
-            case 1:
-                direction = ch;
-                ++char_rotate_state;
+    if (f7_state) {
+        static unsigned char rotchar_direction;
+        static unsigned char rotchar_speed;
+        switch (f7_state) {
+            case F7_STATE_GET_COMMAND:
+                switch (ch) {
+                    case CH_CURS_LEFT:
+                    case CH_CURS_RIGHT:
+                    case CH_CURS_UP:
+                    case CH_CURS_DOWN:
+                        rotchar_direction = ch;
+                        f7_state = F7_STATE_GET_ROTCHAR_SPEED;
+                        break;
+                    case 'm':
+                        ++*(char*)0xd020;
+                        break;
+                }
                 break;
-            case 2:
-                speed = ch - '0';
-                ++char_rotate_state;
+            case F7_STATE_GET_ROTCHAR_SPEED:
+                rotchar_speed = ch - '0';
+                f7_state = F7_STATE_GET_ROTCHAR_CHAR;
                 break;
-            default:
-                rotate_char(screencode[ch], direction, speed);
-                char_rotate_state = 0;
+            case F7_STATE_GET_ROTCHAR_CHAR:
+                rotate_char(screencode[ch], rotchar_direction, rotchar_speed);
+                f7_state = F7_STATE_IDLE;
                 break;
         }
     } else if ((ch & 0x70) > 0x10) {
@@ -375,7 +390,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case CH_F4: ++*(char*)0xd021; break;
         case CH_F5: start_copy(); break;
         case CH_F6: paste(); break;
-        case CH_F7: ++char_rotate_state; break;
+        case CH_F7: f7_state = F7_STATE_GET_COMMAND; break;
         case CH_DEL:
                 fast_cur_left();
                 emit(' ');
