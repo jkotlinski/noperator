@@ -31,6 +31,7 @@ THE SOFTWARE. }}} */
 #define RLE_MARKER 0
 
 static char copy_mode;
+static char mirror_x;
 
 unsigned char color = COLOR_WHITE;
 static char clipboard[40 * 25];
@@ -311,8 +312,18 @@ static const unsigned char screencode[256] = {
 };
 
 static void emit(unsigned char ch) {
-    *charptr = screencode[ch] ^ reverse;
+    char sc = screencode[ch] ^ reverse;
+    *charptr = sc;
     *colptr = color;
+
+    if (mirror_x) {
+        signed char diff = (mirror_x - 2 * x_);
+        signed char alt_x = x_ + diff;
+        if (alt_x >= 0 && alt_x < 40) {
+            charptr[diff] = sc;
+            colptr[diff] = color;
+        }
+    }
 
     /* Inlined cur_right. */
     if (x_ != 39) {
@@ -356,8 +367,11 @@ unsigned char handle(unsigned char ch, char first_keypress) {
                         f7_state = F7_STATE_GET_ROTCHAR_SPEED;
                         break;
                     case 'm':
-                        ++*(char*)0xd020;
+                    case 'M':
+                        mirror_x = mirror_x ? 0 : x_ * 2 + (ch == 'M');
+                        f7_state = F7_STATE_IDLE;
                         break;
+                    default: f7_state = F7_STATE_IDLE; break;
                 }
                 break;
             case F7_STATE_GET_ROTCHAR_SPEED:
