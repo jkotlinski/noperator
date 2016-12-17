@@ -359,7 +359,7 @@ static void emit(unsigned char ch) {
                     sc = ptr[0];
                     break;
                 } else if (ptr[1] == reverse_sc) {
-                    sc = ptr[0] & 0x80;
+                    sc = ptr[0] ^ 0x80;
                     break;
                 }
                 ptr += 2;
