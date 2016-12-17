@@ -320,6 +320,50 @@ static void emit(unsigned char ch) {
         signed char diff = (mirror_x - 2 * x_);
         signed char alt_x = x_ + diff;
         if (alt_x >= 0 && alt_x < 40) {
+            static const char mirrored_chars[] = {
+                95, 105,  // triangle
+                27, 29,  // []
+                40, 41,  // ()
+                60, 62,  // <>
+                71, 72,  // pipes
+                84, 89,  // pipes
+                101, 103,  // pipes
+                101, 106,  // pipes
+                74, 75,  // upper curve
+                73, 85,  // lower curve
+                77, 78,  // slash
+                107, 115,  // y-crossing
+                110, 112,  // lower edge
+                109, 125,  // upper edge
+                76, 122,  // lower border
+                79, 80,  // upper border
+                117, 118,  // thick border
+                123, 108,  // lower square
+                124, 126,  // upper square
+                97, 97 ^ 0x80,  // half char
+                127, 127 ^ 0x80,  // big checkers
+                // 102, 102 ^ 0x80,  // checkers (small, full)
+                // 104, 104 ^ 0x80,  // checkers (small, lower)
+                0
+            };
+            const char* ptr = mirrored_chars;
+            const char reverse_sc = sc ^ 0x80;
+            do {
+                if (ptr[0] == sc) {
+                    sc = ptr[1];
+                    break;
+                } else if (ptr[0] == reverse_sc) {
+                    sc = ptr[1] ^ 0x80;
+                    break;
+                } else if (ptr[1] == sc) {
+                    sc = ptr[0];
+                    break;
+                } else if (ptr[1] == reverse_sc) {
+                    sc = ptr[0] & 0x80;
+                    break;
+                }
+                ptr += 2;
+            } while (*ptr);
             charptr[diff] = sc;
             colptr[diff] = color;
         }
