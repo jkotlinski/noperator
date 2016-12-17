@@ -349,17 +349,19 @@ static void emit(unsigned char ch) {
             const char* ptr = mirrored_chars;
             const char reverse_sc = sc ^ 0x80;
             do {
-                if (ptr[0] == sc) {
-                    sc = ptr[1];
+                const char lhs = ptr[0];
+                const char rhs = ptr[1];
+                if (lhs == sc) {
+                    sc = rhs;
                     break;
-                } else if (ptr[0] == reverse_sc) {
-                    sc = ptr[1] ^ 0x80;
+                } else if (reverse_sc == lhs) {
+                    sc = rhs ^ 0x80;
                     break;
-                } else if (ptr[1] == sc) {
-                    sc = ptr[0];
+                } else if (rhs == sc) {
+                    sc = lhs;
                     break;
-                } else if (ptr[1] == reverse_sc) {
-                    sc = ptr[0] ^ 0x80;
+                } else if (reverse_sc == rhs) {
+                    sc = lhs ^ 0x80;
                     break;
                 }
                 ptr += 2;
