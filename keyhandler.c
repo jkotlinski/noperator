@@ -14,8 +14,8 @@ static char copy_mode;
 static char mirror_x;
 
 unsigned char color = COLOR_WHITE;
-static char clipboard[40 * 25];
-static char clipboard_color[40 * 25];
+static unsigned char clipboard[40 * 25];
+static unsigned char clipboard_color[40 * 25];
 
 /* (CLIP_X1, CLIP_Y1) = top left.
  * (CLIP_X2, CLIP_Y2) = bottom right.
@@ -25,7 +25,7 @@ static char CLIP_X2;
 static char CLIP_Y1;
 static char CLIP_Y2;
 
-#define DISPLAY_BASE ((char*)0x400)
+#define DISPLAY_BASE ((unsigned char*)0x400)
 
 char playback_mode = 1;  // if set, some UI operations will be disabled
 static void invert_copy_mark() {
@@ -49,8 +49,8 @@ static void invert_copy_mark() {
 
 static char x_;
 static char y_;
-static char* charptr = DISPLAY_BASE;
-static char* colptr = (char*)0xd800;
+static unsigned char* charptr = DISPLAY_BASE;
+static unsigned char* colptr = (unsigned char*)0xd800;
 
 static void start_copy() {
     CLIP_X1 = x_;
@@ -65,11 +65,11 @@ static void start_copy() {
 static void paste() {
     char width;
     char height;
-    char* src_char = clipboard + CLIP_Y1 * 40 + CLIP_X1;
+    unsigned char* src_char = clipboard + CLIP_Y1 * 40 + CLIP_X1;
     /* Assumes clipboard_color is directly after clipboard. */
-    char* src_color = src_char + sizeof(clipboard);
-    char* dst_color = colptr;
-    char* dst_char = charptr;
+    unsigned char* src_color = src_char + sizeof(clipboard);
+    unsigned char* dst_color = colptr;
+    unsigned char* dst_char = charptr;
 
     if (CLIP_X1 == 0xff) {
         return;
@@ -482,7 +482,7 @@ void cursor_home()
     x_ = 0;
     y_ = 0;
     charptr = DISPLAY_BASE;
-    colptr = (char*)0xd800;
+    colptr = (unsigned char*)0xd800;
 }
 
 // -----
