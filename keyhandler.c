@@ -397,7 +397,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
                 f7_state = F7_STATE_GET_ROTCHAR_CHAR;
                 break;
             case F7_STATE_GET_ROTCHAR_CHAR:
-                rotate_char(screencode[ch], rotchar_direction, rotchar_speed);
+                rotate_char(screencode[ch] ^ reverse, rotchar_direction, rotchar_speed);
                 f7_state = F7_STATE_IDLE;
                 break;
         }
