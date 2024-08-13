@@ -35,11 +35,11 @@ static void init(void) {
 
 static void do_store(char ch) {
     *last_char = ch;
-    if (last_char >= (char*)0xcf00) {
+    if (last_char >= (unsigned char*)0xcf00) {
         /* running out of RAM warning */
-        ++*(char*)0xd020;
+        ++*(unsigned char*)0xd020;
     }
-    if (last_char != (char*)0xcfff) {
+    if (last_char != (unsigned char*)0xcfff) {
         ++last_char;
     }
 }
@@ -90,7 +90,7 @@ static void pause_one_clock()
     while (now == clock());
 }
 
-static char* run_ptr;
+static unsigned char* run_ptr;
 
 static void insert_keyframe()
 {
@@ -138,7 +138,7 @@ static void blink() {
 static void editloop(void) {
     char first_keypress = 1;
     unsigned char ticks_since_last_key;
-    while (last_char < (char*)0xd000) {
+    while (last_char < (unsigned char*)0xd000) {
         static unsigned char blink_delay = 1;
         pause_one_clock();
         if (--blink_delay == 0) {

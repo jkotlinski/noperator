@@ -13,16 +13,16 @@
 #include "rledec.h"
 #include "screen.h"
 
-static char* read_pos;
+static unsigned char* read_pos;
 
 #define RLE_MARKER 0
 
 #define STEPS_PER_BEAT 4
 #define TICKS_PER_BEAT (STEPS_PER_BEAT * ticks_per_step)
 
-static char* next_keyframe()
+static unsigned char* next_keyframe()
 {
-    char *pos = read_pos + 3;
+    unsigned char *pos = read_pos + 3;
     for (;;) {
         if (pos >= last_char)
             return last_char;
@@ -74,8 +74,8 @@ static void print_fract(unsigned int number)
 static unsigned int keys_in_segment()
 {
     /* Keys in segment, excluding keyframe. */
-    const char* const end = next_keyframe();
-    const char* pos = read_pos + 3;
+    const unsigned char* const end = next_keyframe();
+    const unsigned char* pos = read_pos + 3;
     unsigned int count = 0;
     while (pos < end) {
         count += rle_dec(*pos);
@@ -139,13 +139,13 @@ static void goto_next_keyframe()
 
 static void goto_prev_keyframe()
 {
-    char* pos = KEYS_START;
-    char* new_read_pos = KEYS_START;
+    unsigned char* pos = KEYS_START;
+    unsigned char* new_read_pos = KEYS_START;
     if (read_pos == KEYS_START) return;
 
     /* Finds new_read_pos. */
     while (1) {
-        char ch = *pos;
+        unsigned char ch = *pos;
         if (ch == CH_HOME) {
             if (pos < read_pos) {
                 new_read_pos = pos;
@@ -264,7 +264,7 @@ static void play_current_segment()
 {
     unsigned int acc = 1 << 12;
     unsigned int speed = *(int*)(read_pos + 1);
-    char* const end = next_keyframe();
+    unsigned char* const end = next_keyframe();
     unsigned char rle_left = 0;
     init_music();
     start_playing();

@@ -14,8 +14,8 @@ static char copy_mode;
 static char mirror_x;
 
 unsigned char color = COLOR_WHITE;
-static char clipboard[40 * 25];
-static char clipboard_color[40 * 25];
+static unsigned char clipboard[40 * 25];
+static unsigned char clipboard_color[40 * 25];
 
 /* (CLIP_X1, CLIP_Y1) = top left.
  * (CLIP_X2, CLIP_Y2) = bottom right.
@@ -25,7 +25,7 @@ static char CLIP_X2;
 static char CLIP_Y1;
 static char CLIP_Y2;
 
-#define DISPLAY_BASE ((char*)0x400)
+#define DISPLAY_BASE ((unsigned char*)0x400)
 
 char playback_mode = 1;  // if set, some UI operations will be disabled
 static void invert_copy_mark() {
@@ -49,8 +49,8 @@ static void invert_copy_mark() {
 
 static char x_;
 static char y_;
-static char* charptr = DISPLAY_BASE;
-static char* colptr = (char*)0xd800;
+static unsigned char* charptr = DISPLAY_BASE;
+static unsigned char* colptr = (unsigned char*)0xd800;
 
 static void start_copy() {
     CLIP_X1 = x_;
@@ -65,11 +65,11 @@ static void start_copy() {
 static void paste() {
     char width;
     char height;
-    char* src_char = clipboard + CLIP_Y1 * 40 + CLIP_X1;
+    unsigned char* src_char = clipboard + CLIP_Y1 * 40 + CLIP_X1;
     /* Assumes clipboard_color is directly after clipboard. */
-    char* src_color = src_char + sizeof(clipboard);
-    char* dst_color = colptr;
-    char* dst_char = charptr;
+    unsigned char* src_color = src_char + sizeof(clipboard);
+    unsigned char* dst_color = colptr;
+    unsigned char* dst_char = charptr;
 
     if (CLIP_X1 == 0xff) {
         return;
@@ -254,7 +254,7 @@ static char cur_right(char may_move_screen) {
     return 1;
 }
 
-static unsigned char reverse;
+static unsigned char reverse = 0;
 
 static const unsigned char screencode[256] = {
     0x80u, 0x81u, 0x82u, 0x83u, 0x84u, 0x85u, 0x86u, 0x87u,
@@ -397,7 +397,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
                 f7_state = F7_STATE_GET_ROTCHAR_CHAR;
                 break;
             case F7_STATE_GET_ROTCHAR_CHAR:
-                rotate_char(screencode[ch], rotchar_direction, rotchar_speed);
+                rotate_char(screencode[ch] ^ reverse, rotchar_direction, rotchar_speed);
                 f7_state = F7_STATE_IDLE;
                 break;
         }
@@ -415,6 +415,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
             init_screen();
             // Fall through.
         case 2:
+            reverse = 0
             cursor_home();
             color = COLOR_WHITE;
             break;
@@ -482,7 +483,7 @@ void cursor_home()
     x_ = 0;
     y_ = 0;
     charptr = DISPLAY_BASE;
-    colptr = (char*)0xd800;
+    colptr = (unsigned char*)0xd800;
 }
 
 // -----
