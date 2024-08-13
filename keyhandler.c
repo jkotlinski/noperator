@@ -254,7 +254,7 @@ static char cur_right(char may_move_screen) {
     return 1;
 }
 
-static unsigned char reverse;
+static unsigned char reverse = 0;
 
 static const unsigned char screencode[256] = {
     0x80u, 0x81u, 0x82u, 0x83u, 0x84u, 0x85u, 0x86u, 0x87u,
@@ -415,6 +415,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
             init_screen();
             // Fall through.
         case 2:
+            reverse = 0
             cursor_home();
             color = COLOR_WHITE;
             break;
