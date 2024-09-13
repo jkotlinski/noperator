@@ -415,7 +415,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
             init_screen();
             // Fall through.
         case 2:
-            reverse = 0
+            reverse = 0;
             cursor_home();
             color = COLOR_WHITE;
             break;
