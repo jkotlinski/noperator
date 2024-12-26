@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Allow rotating reversed characters.
-- Reset more state at movie start. This makes it easier to merge animations.
+- Reset character rotation at movie start.
+- Reset reverse at movie start and marker 2.
 
 ### Added
 

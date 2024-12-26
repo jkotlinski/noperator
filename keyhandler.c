@@ -412,7 +412,8 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         }
     } else switch (ch) {
         case MOVIE_START_MARKER:
-            anim_reset();
+            init_screen();
+            stop_char_rotations();
             // Fall through.
         case 2:
             reverse = 0;
