@@ -416,6 +416,8 @@ unsigned char handle(unsigned char ch, char first_keypress) {
             // Fall through.
         case 2:
             reverse = 0;
+            cursor_home();
+            color = COLOR_WHITE;
             break;
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
