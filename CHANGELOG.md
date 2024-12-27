@@ -11,9 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Allow rotating reversed characters.
-- Reset character rotation at movie start.
-- Reset reverse at movie start and marker 2.
+- Reset reverse, background colors and character rotation at movie start.
 
 ### Added
 
