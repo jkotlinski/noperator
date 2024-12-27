@@ -414,8 +414,6 @@ unsigned char handle(unsigned char ch, char first_keypress) {
         case MOVIE_START_MARKER:
             init_screen();
             stop_char_rotations();
-            // Fall through.
-        case 2: // What is this case? I forgot :-(
             reverse = 0;
             cursor_home();
             color = COLOR_WHITE;

@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reset reverse, background colors and character rotation at movie start.
 
+### Removed
+
+- Undocumented Ctrl+B keypress to reset cursor (?).
+
 ### Added
 
 New key presses:
