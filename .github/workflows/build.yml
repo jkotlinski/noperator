@@ -1,0 +1,27 @@
+name: build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install cc65
+
+    - name: make
+      run: make
+
+    - name: Archive noperator
+      uses: actions/upload-artifact@v3
+      with:
+        name: noperator
+        path: deploy
