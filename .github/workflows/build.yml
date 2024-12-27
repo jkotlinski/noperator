@@ -1,0 +1,34 @@
+name: build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CC65_HOME: '/usr/share/cc65'
+
+jobs:
+  build:
+    # libflac8 (required by VICE) does not exist on 24.04.
+    # change back to ubuntu-latest once this is resolved.
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install cc65
+        wget https://github.com/VICE-Team/svn-mirror/releases/download/3.8.0/headlessvice_3.8.deb
+        sudo apt-get install ./headlessvice_3.8.deb
+
+    - name: make
+      run: make
+
+    - name: Archive noperator
+      uses: actions/upload-artifact@v3
+      with:
+        name: noperator
+        path: deploy
