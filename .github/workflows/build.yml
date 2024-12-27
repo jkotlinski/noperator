@@ -19,6 +19,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install cc65
+        wget https://github.com/VICE-Team/svn-mirror/releases/download/3.8.0/headlessvice_3.8.deb
+        sudo apt-get install ./headlessvice_3.8.deb
 
     - name: make
       run: make
