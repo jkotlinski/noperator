@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Reset reverse, background colors and character rotation at movie start.
-- Four-column file listing when pressing F1 to load animations.
 
 ### Removed
 
