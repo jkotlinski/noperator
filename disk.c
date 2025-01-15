@@ -29,14 +29,26 @@ char mygets(char* buf) {
 
 void ls() {
     struct cbm_dirent direntry;
+    char x = 0;
+    char y = 0;
     cbm_opendir(1, 8);
     while (!cbm_readdir(1, &direntry)) {
-        if (direntry.size) {
-            cputs(direntry.name);
-            gotoxy(0, wherey() + 1);
+        if (!direntry.size) {
+            continue;
+        }
+        gotoxy(x, y);
+        cputs(direntry.name);
+        x += 10;
+        if (x == 40) {
+            x = 0;
+            ++y;
         }
     }
     cbm_close(1);
+    if (x) {
+        ++y;
+    }
+    gotoxy(0, y);
 }
 
 unsigned int prompt_load_anim(void)
