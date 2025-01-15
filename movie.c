@@ -31,8 +31,6 @@ void scratch_movie()
 
 void write_movie()
 {
-    clrscr();
-    textcolor(COLOR_WHITE);
     ls();
     cputs("anim> ");
     while (!mygets(movie.anim_path));
@@ -45,8 +43,6 @@ void write_movie()
 void load_music()
 {
     unsigned int read;
-    clrscr();
-    textcolor(COLOR_WHITE);
     ls();
     cputs("music> ");
     if (!mygets(movie.music_path)) return;

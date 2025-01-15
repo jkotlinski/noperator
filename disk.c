@@ -30,10 +30,23 @@ char mygets(char* buf) {
 void ls() {
     struct cbm_dirent direntry;
     cbm_opendir(1, 8);
+    clrscr();
+    textcolor(COLOR_WHITE);
     while (!cbm_readdir(1, &direntry)) {
         if (direntry.size) {
+            if (wherey() == 24) {
+                revers(1);
+                cputs("<more>");
+                revers(0);
+                cgetc();
+                clrscr();
+            }
             cputs(direntry.name);
-            gotoxy(0, wherey() + 1);
+            if (wherex() < 20) {
+                gotox(20);
+            } else {
+                gotoxy(0, wherey() + 1);
+            }
         }
     }
     cbm_close(1);
@@ -43,8 +56,6 @@ unsigned int prompt_load_anim(void)
 {
     unsigned int read = 0;
     char buf[16];
-    clrscr();
-    textcolor(COLOR_WHITE);
     ls();
     cputs("load anim> ");
     if (mygets(buf)) {
@@ -60,8 +71,6 @@ unsigned int prompt_load_anim(void)
 void prompt_save_anim()
 {
     char buf[18];
-    clrscr();
-    textcolor(COLOR_WHITE);
     ls();
     cputs("save anim> ");
     if (!mygets(buf + 2)) return;
