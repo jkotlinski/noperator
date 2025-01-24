@@ -50,6 +50,9 @@ void ls() {
         }
     }
     cbm_close(1);
+    if (wherex()) {
+        gotoxy(0, wherey() + 1);
+    }
 }
 
 unsigned int prompt_load_anim(void)
