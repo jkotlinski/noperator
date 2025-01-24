@@ -50,7 +50,9 @@ nop: 		$(OBJS) $(CLIB) nop.d64
 	@for exe in $(EXELIST); do\
 	    $(C1541) -attach nop.d64 -delete $$exe  > /dev/null;\
 	    $(C1541) -attach nop.d64 -write $$exe  > /dev/null;\
-	done;
+	done;\
+	$(C1541) -attach nop.d64 -delete lightforce  > /dev/null;\
+	$(C1541) -attach nop.d64 -write lightforce  > /dev/null;
 
 run: nop
 	x64sc nop.d64

@@ -52,8 +52,12 @@ void load_music()
         cputs("too big:(");
         while (1) ++*(char*)0xd020;
     }
-    cputs(" ticks per step? (1-9)");
+    gotoxy(0, wherey() + 1);
+    cputs("ticks per step? (1-9, enter=6)");
     ticks_per_step = cgetc() - '0';
+    if (ticks_per_step < 1 || ticks_per_step > 9) {
+        ticks_per_step = 6;
+    }
 }
 
 void play_movie()
