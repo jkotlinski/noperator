@@ -27,6 +27,10 @@ static char CLIP_Y2;
 
 #define DISPLAY_BASE ((unsigned char*)0x400)
 
+void reset_keyhandler() {
+    mirror_x = 0;
+}
+
 char playback_mode = 1;  // if set, some UI operations will be disabled
 static void invert_copy_mark() {
     if (playback_mode) return;

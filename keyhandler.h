@@ -11,4 +11,6 @@ extern unsigned char color;
 void show_cursor(void);
 void hide_cursor(void);
 
+void reset_keyhandler(void);
+
 #define MOVIE_START_MARKER 1

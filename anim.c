@@ -27,6 +27,7 @@ void anim_reset() {
     color = COLOR_WHITE;
     init_screen();
     stop_char_rotations();
+    reset_keyhandler();
 }
 
 static void init(void) {

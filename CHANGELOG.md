@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Directory listing for many files.
 - Undo any accidental C= upper/lower case change in animation editor.
+- Reset mirroring at movie start.
 
 ## v2.0.0 - 2016-12-17
 
