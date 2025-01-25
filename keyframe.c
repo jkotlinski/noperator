@@ -265,9 +265,17 @@ static void insert_keyframe()
 static void play_current_segment()
 {
     unsigned int acc = 1 << 12;
-    unsigned int speed = *(int*)(edit_pos + 1);
-    unsigned char* const end = next_keyframe();
+    unsigned int speed;
+    unsigned char* end;
     unsigned char rle_left = 0;
+
+    if (*edit_pos != CH_HOME) {
+        goto_prev_keyframe();
+    }
+
+    speed = *(int*)(edit_pos + 1);
+    end = next_keyframe();
+
     init_music();
     start_playing();
 
