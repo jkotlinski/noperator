@@ -36,18 +36,11 @@ static unsigned char* next_keyframe()
     }
 }
 
-static char behind_speed_buf[30];
-
-static void store_screen()
-{
-    if (!*behind_speed_buf)
-        memcpy(behind_speed_buf, (char*)0x400 + 24 * 40, sizeof(behind_speed_buf));
-}
-static void restore_screen()
-{
-    if (*behind_speed_buf)
-        memcpy((char*)0x400 + 24 * 40, behind_speed_buf, sizeof(behind_speed_buf));
-    *behind_speed_buf = '\0';
+static void clear_beats_bg() {
+    gotoxy(10, 24);
+    while (wherex() < 32) {
+        cputc(' ');
+    }
 }
 
 static void print_dec(unsigned int number)
@@ -83,13 +76,17 @@ static void print_beats(unsigned int speed)
     keys /= speed;
     print_dec(keys / TICKS_PER_BEAT);
     cputc('.');
-    print_dec(keys % TICKS_PER_BEAT);
+    keys %= TICKS_PER_BEAT;
+    keys *= 10;
+    print_dec(keys / TICKS_PER_BEAT);
 }
 
 static void print_speed() {
     const unsigned int speed = *(int*)(read_pos + 1);
+    clear_beats_bg();
+    gotoxy(10, 24);
     if (speed == KEYFRAME_SPEED_NONE) {
-        cputs("1-9: set beat count");
+        cputs("1-9: set beats");
     } else {
         cputs("beats:");
         print_beats(speed);
@@ -105,7 +102,6 @@ static void print_position() {
     if (*read_pos != CH_HOME) {
         return; // not a keyframe
     }
-    store_screen();
     gotoxy(0, 24);
     // find keyframe number
     read_pos = KEYS_START;
@@ -115,7 +111,6 @@ static void print_position() {
     }
     cputc('#');
     print_dec(keyframe);
-    gotoxy(10, 24);
     print_speed();
 }
 
@@ -124,7 +119,6 @@ static void goto_next_keyframe()
     unsigned char* const end = next_keyframe();
     if (end >= last_char)
         return;
-    restore_screen();
     if (*read_pos == CH_HOME)
         read_pos += 3;  /* Skips keyframe. */
     for (;;) {
@@ -191,19 +185,16 @@ static void calc_speed(unsigned char beats)
 static void enter_beats(int beats)
 {
     char c;
-    store_screen();
+    clear_beats_bg();
     gotoxy(10, 24);
     cputs("beats:");
     cputc('0' + beats);
     revers(1);
     cputc(' ');
-    revers(0);
-    while (wherex() < 39) {
-        cputc(' ');
-    }
     c = cgetc();
     if (c >= '0' && c <= '9') {
         gotox(17);
+        revers(0);
         cputc(c);
         revers(1);
         cputc(' ');
@@ -217,14 +208,12 @@ static void enter_beats(int beats)
     }
     revers(0);
     calc_speed(beats);
-    restore_screen();
     print_position();
 }
 
 static void goto_next_key()
 {
     if (read_pos == last_char) return;
-    restore_screen();
     switch (*read_pos) {
         case CH_HOME:  /* Keyframe */
             read_pos += 3;
@@ -244,7 +233,6 @@ static void delete_keyframe()
     if (*read_pos != CH_HOME) return;
     last_char -= 3;
     memmove(read_pos, read_pos + 3, last_char - read_pos);
-    restore_screen();
 }
 
 static void insert_keyframe()
