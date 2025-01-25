@@ -89,9 +89,9 @@ static void print_beats(unsigned int speed)
 static void print_speed() {
     const unsigned int speed = *(int*)(read_pos + 1);
     if (speed == KEYFRAME_SPEED_NONE) {
-        cputs("press b to set speed");
+        cputs("1-9: set beat count");
     } else {
-        cputs(" beats:");
+        cputs("beats:");
         print_beats(speed);
         cputs(" (");
         print_dec(speed / ((1 << 12) / 60));
@@ -178,22 +178,6 @@ static void goto_prev_keyframe()
     print_position();
 }
 
-static unsigned char read_digits() {
-    unsigned char number = 0;
-    while (1) {
-        char c = cgetc();
-        if (c >= '0' && c <= '9') {
-            cputc(c);
-            number *= 10;
-            number += c - '0';
-            if (number > 100) break;
-        } else if (c == CH_ENTER) {
-            break;
-        }
-    }
-    return number;
-}
-
 static void calc_speed(unsigned char beats)
 {
     /* speed = (keys << 12) / ticks) */
@@ -204,18 +188,33 @@ static void calc_speed(unsigned char beats)
     *(unsigned int*)(read_pos + 1) = speed;
 }
 
-static void enter_beats()
+static void enter_beats(int beats)
 {
-    unsigned char beats;
-    gotoxy(0, 24);
-    for (beats = 0; beats < sizeof(behind_speed_buf); ++beats)
-        cputc(' ');
-    gotoxy(0, 24);
+    char c;
+    store_screen();
+    gotoxy(10, 24);
     cputs("beats:");
+    cputc('0' + beats);
     revers(1);
-    cputs("   ");
-    gotox(wherex() - 3);
-    beats = read_digits();
+    cputc(' ');
+    revers(0);
+    while (wherex() < 39) {
+        cputc(' ');
+    }
+    c = cgetc();
+    if (c >= '0' && c <= '9') {
+        gotox(17);
+        cputc(c);
+        revers(1);
+        cputc(' ');
+        beats *= 10;
+        beats += c - '0';
+        c = cgetc();
+        if (c >= '0' && c <= '9') {
+            beats *= 10;
+            beats += c - '0';
+        }
+    }
     revers(0);
     calc_speed(beats);
     restore_screen();
@@ -308,7 +307,8 @@ static void editloop()
 {
     print_position();
     for (;;) {
-        switch (cgetc())
+        char ch = cgetc();
+        switch (ch)
         {
             case CH_F2:
                 prompt_save_anim();
@@ -319,10 +319,6 @@ static void editloop()
                 break;
             case ' ' | 0x80:
                 goto_prev_keyframe();
-                break;
-            case 'b':
-                if (*read_pos == CH_HOME)
-                    enter_beats();
                 break;
             case CH_CURS_RIGHT:
                 goto_next_key();
@@ -339,6 +335,11 @@ static void editloop()
                 break;
             case CH_LEFTARROW:
                 return;
+            default:
+                if (*read_pos == CH_HOME && ch >= '1' && ch <= '9') {
+                    enter_beats(ch - '0');
+                }
+                break;
         }
     }
 }

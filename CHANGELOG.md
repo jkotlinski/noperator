@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Space: go to next keyframe
     - Shift+Space: go to previous keyframe
     - Right: go to next key
+    - 1-9: set beat count
 
 ### Fixed
 
