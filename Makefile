@@ -19,6 +19,7 @@ all:   	nop
 %.a : %.c
 	@echo $<
 	@mkdir -p $(DEPDIR)
+	@mkdir -p $(DEPDIR)/src
 	@$(CC) --create-dep $(DEPDIR)/$(basename $<).u -o $(basename $<).a $(basename $<).c
 
 %.o : %.a
@@ -31,8 +32,9 @@ all:   	nop
 	@echo $<
 	@$(AS) $(basename $<).s
 
-OBJS = main.o keyframe.o anim.o irq.o loader.o fastload.o screen.o disk.o keybuf.o keyhandler.o rledec.o music.o \
-	   movie.o opt.o font.o rotchars.o rotchars_p.o
+OBJS = src/main.o src/keyframe.o src/anim.o src/irq.o src/loader.o src/fastload.o \
+       src/screen.o src/disk.o src/keybuf.o src/keyhandler.o src/rledec.o src/music.o \
+       src/movie.o src/opt.o src/font.o src/rotchars.o src/rotchars_p.o
 
 -include $(OBJS:%.o=$(DEPDIR)/%.u)
 
