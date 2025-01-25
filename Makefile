@@ -9,7 +9,7 @@ C1541  	= c1541
 DEPDIR = build
 
 
-all:   	nop
+all:   	build/nop
 
 # --------------------------------------------------------------------------
 # Generic rules
@@ -39,30 +39,30 @@ OBJS := $(addprefix build/,$(addsuffix .o,$(notdir $(basename ${SRCS}))))
 # --------------------------------------------------------------------------
 # Rules how to make each one of the binaries
 
-EXELIST=nop
+EXELIST=build/nop
 
-nop.d64:
-	$(C1541) -format nop,AA  d64 nop.d64 > /dev/null
+bin/nop.d64:
+	@mkdir -p bin
+	$(C1541) -format nop,AA  d64 bin/nop.d64 > /dev/null
 
-nop: 		$(OBJS) $(CLIB) nop.d64
+build/nop: 	$(OBJS) $(CLIB) bin/nop.d64
 	@$(LD) -o $@ $(OBJS) $(CLIB)
-	# @$(PUCRUNCH) -ffast nop nop
 	@for exe in $(EXELIST); do\
-	    $(C1541) -attach nop.d64 -delete $$exe  > /dev/null;\
-	    $(C1541) -attach nop.d64 -write $$exe  > /dev/null;\
+	    $(C1541) -attach bin/nop.d64 -delete $$exe  > /dev/null;\
+	    $(C1541) -attach bin/nop.d64 -write $$exe  > /dev/null;\
 	done;\
-	$(C1541) -attach nop.d64 -delete lightforce  > /dev/null;\
-	$(C1541) -attach nop.d64 -write res/lightforce  > /dev/null;
+	$(C1541) -attach bin/nop.d64 -delete lightforce  > /dev/null;\
+	$(C1541) -attach bin/nop.d64 -write res/lightforce  > /dev/null;
 
 run: nop
-	x64sc nop.d64
+	x64sc bin/nop.d64
 
 # --------------------------------------------------------------------------
 # Cleanup rules
 
 .PHONY:	clean
 clean:
-	rm -rf $(EXELIST) *.d64 build *.prg
+	rm -rf build bin
 
 # ------------------
 
