@@ -3,7 +3,7 @@ CLIB	= $(CC65_HOME)/lib/c64.lib
 CC	= cc65 -Or -O -Cl -tc64 -T -I $(CC65_HOME)/include/
 # CC	= cc65 --create-dep -Cl -tc64 -T -I $(CC65BASE)/include/
 AS	= ca65 --cpu 6502x # -l
-LD	= ld65 -C src/nop.cfg -m nop.map -Ln nop.lbl
+LD	= ld65 -C src/nop.cfg -m build/nop.map -Ln build/nop.lbl
 PUCRUNCH = ~/bin/pucrunch
 C1541  	= c1541
 DEPDIR = build
@@ -62,7 +62,7 @@ run: nop
 
 .PHONY:	clean
 clean:
-	rm -rf $(EXELIST) *.d64 *.map build *.lbl *.prg *.lst *.u $(DEPDIR)
+	rm -rf $(EXELIST) *.d64 build *.prg
 
 # ------------------
 
