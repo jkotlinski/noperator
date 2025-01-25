@@ -6,7 +6,7 @@ AS	= ca65 --cpu 6502x # -l
 LD	= ld65 -C src/nop.cfg -m nop.map -Ln nop.lbl
 PUCRUNCH = ~/bin/pucrunch
 C1541  	= c1541
-DEPDIR = .dep
+DEPDIR = build
 
 
 all:   	nop
@@ -14,29 +14,27 @@ all:   	nop
 # --------------------------------------------------------------------------
 # Generic rules
 
-%.o : %.c
-
-%.a : %.c
+build/%.a : src/%.c
 	@echo $<
-	@mkdir -p $(DEPDIR)
-	@mkdir -p $(DEPDIR)/src
-	@$(CC) --create-dep $(DEPDIR)/$(basename $<).u -o $(basename $<).a $(basename $<).c
+	@mkdir -p build
+	@$(CC) --create-dep $(DEPDIR)/$(notdir $(basename $<)).u \
+		-o build/$(notdir $(basename $<)).a \
+		$(basename $<).c
 
-%.o : %.a
-	@$(AS) $(basename $<).a
+build/%.o : build/%.a
+	@$(AS) -o build/$(notdir $(basename $<)).o $(basename $<).a
 
 # Don't delete intermediate .a files.
-.PRECIOUS : %.a
+.PRECIOUS : build/%.a
 
-%.o : %.s
+build/%.o : src/%.s
 	@echo $<
-	@$(AS) $(basename $<).s
+	@$(AS) -o build/$(notdir $(basename $<)).o $<
 
-OBJS = src/main.o src/keyframe.o src/anim.o src/irq.o src/loader.o src/fastload.o \
-       src/screen.o src/disk.o src/keybuf.o src/keyhandler.o src/rledec.o src/music.o \
-       src/movie.o src/opt.o src/font.o src/rotchars.o src/rotchars_p.o
+SRCS := $(wildcard src/*.c src/*.s)
+OBJS := $(addprefix build/,$(addsuffix .o,$(notdir $(basename ${SRCS}))))
 
--include $(OBJS:%.o=$(DEPDIR)/%.u)
+-include $(OBJS:build/%.o=build/%.u)
 
 # --------------------------------------------------------------------------
 # Rules how to make each one of the binaries
@@ -64,7 +62,7 @@ run: nop
 
 .PHONY:	clean
 clean:
-	rm -rf $(EXELIST) *.d64 *.map src/*.o *.lbl *.prg *.lst src/*.a *.u $(DEPDIR)/*
+	rm -rf $(EXELIST) *.d64 *.map build *.lbl *.prg *.lst *.u $(DEPDIR)
 
 # ------------------
 

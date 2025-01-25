@@ -1,8 +1,6 @@
-src/*.o
-src/*.a
 *.d64
 *.lbl
 *.map
+build
 nop
-.dep
 tags
