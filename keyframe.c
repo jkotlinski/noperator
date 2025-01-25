@@ -36,7 +36,11 @@ static unsigned char* next_keyframe()
     }
 }
 
-static void clear_beats_bg() {
+static void clear_bg() {
+    gotoxy(0, 24);
+    while (wherex() < 8) {
+        cputc(' ');
+    }
     gotoxy(10, 24);
     while (wherex() < 32) {
         cputc(' ');
@@ -83,7 +87,6 @@ static void print_beats(unsigned int speed)
 
 static void print_speed() {
     const unsigned int speed = *(int*)(edit_pos + 1);
-    clear_beats_bg();
     gotoxy(10, 24);
     if (speed == KEYFRAME_SPEED_NONE) {
         cputs("1-9: set beats");
@@ -99,19 +102,27 @@ static void print_speed() {
 static void print_position() {
     int keyframe = 1;
     unsigned char* now = edit_pos;
-    if (*edit_pos != CH_HOME) {
-        return; // not a keyframe
-    }
+    unsigned char* last_keyframe_pos = KEYS_START;
+    clear_bg();
     gotoxy(0, 24);
     // find keyframe number
     edit_pos = KEYS_START;
-    while (edit_pos != now) {
+    while (edit_pos < now) {
+        last_keyframe_pos = edit_pos;
         edit_pos = next_keyframe();
         ++keyframe;
     }
-    cputc('#');
-    print_dec(keyframe);
-    print_speed();
+    if (edit_pos == now) {
+        cputc('#');
+        print_dec(keyframe);
+        print_speed();
+    } else {
+        cputc('#');
+        print_dec(keyframe - 1);
+        cputc('+');
+        print_dec(now - last_keyframe_pos);
+    }
+    edit_pos = now;
 }
 
 static void goto_next_keyframe()
@@ -185,7 +196,7 @@ static void calc_speed(unsigned char beats)
 static void enter_beats(int beats)
 {
     char c;
-    clear_beats_bg();
+    clear_bg();
     gotoxy(10, 24);
     cputs("beats:");
     cputc('0' + beats);
@@ -213,7 +224,7 @@ static void enter_beats(int beats)
 
 static void goto_next_key()
 {
-    if (edit_pos == last_char) return;
+    unsigned char* pos = edit_pos;
     switch (*edit_pos) {
         case CH_HOME:  /* Keyframe */
             edit_pos += 3;
@@ -224,6 +235,11 @@ static void goto_next_key()
             /* Fall through! */
         default:
             handle_rle(*edit_pos++);
+    }
+    if (edit_pos >= last_char) {
+        // don't go out of bounds
+        edit_pos = pos;
+        return;
     }
     print_position();
 }
@@ -310,7 +326,6 @@ static void editloop()
                 break;
             case CH_CURS_RIGHT:
                 goto_next_key();
-                print_position();
                 break;
             case CH_DEL:
                 delete_keyframe();
