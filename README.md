@@ -29,7 +29,7 @@ Creates original animations (letter noperator style)
 ### Keyframe Editor
 
   * F2: save animation
-  * B: set beats for period between this and next keyframe
+  * 1-9: set duration between this and next keyframe, in number of beats
   * Space: jump to next keyframe
   * Shift+Space: jump to previous keyframe
   * Right: step key forward
