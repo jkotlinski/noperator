@@ -11,6 +11,9 @@
 #include "fastload.h"
 #include "screen.h"
 #include "rotchars.h"
+#include "irq.h"
+#include "music.h"
+#include "rledec.h"
 
 #define DISPLAY_BASE ((char*)0x400)
 
@@ -129,16 +132,71 @@ static void insert_keyframe()
     pause_one_clock();
 }
 
-static void run() {
+static void replay_all_instantly() {
     run_ptr = KEYS_START;
     flush_rle();
     playback_mode = 1;
     anim_reset();
     while (run_ptr < last_char) {
-        handle_rle(*run_ptr);
-        ++run_ptr;
+        if (*run_ptr == CH_HOME) {
+            run_ptr += 3;
+        } else {
+            handle_rle(*run_ptr);
+            ++run_ptr;
+        }
     }
     playback_mode = 0;
+}
+
+static void play_with_music() {
+    unsigned int acc = 1 << 12;
+    unsigned int speed;
+    unsigned char rle_left = 0;
+    run_ptr = KEYS_START;
+    flush_rle();
+    playback_mode = 1;
+    anim_reset();
+
+    speed = *(int*)(run_ptr + 1);
+    run_ptr += 3;
+    init_music();
+    start_playing();
+    ticks = 0;
+    while (1) {
+        /* Wait for tick. */
+        show_cursor();
+        while (ticks == 0);
+        hide_cursor();
+        --ticks;
+
+        acc += speed;
+        while (acc >= (1 << 12)) {
+            if (rle_left) {
+                handle(rle_char, 1);
+                --rle_left;
+            } else while (1) {
+                if (run_ptr == last_char) {
+                    stop_playing();
+                    playback_mode = 0;
+                    return;
+                }
+                if (*run_ptr == CH_HOME) {
+                    speed = *++run_ptr;
+                    speed |= *++run_ptr << 8;
+                    ++run_ptr;
+                    continue;
+                }
+                rle_left = rle_dec(*run_ptr);
+                ++run_ptr;
+                if (rle_left) {
+                    handle(rle_char, 1);
+                    --rle_left;
+                    break;
+                }
+            }
+            acc -= (1 << 12);
+        }
+    }
 }
 
 static unsigned char blink_on;
@@ -175,12 +233,12 @@ static void editloop(void) {
             switch (ch) {
                 case CH_F1:
                     load();
-                    run();
+                    replay_all_instantly();
                     break;
                 case CH_F2:
                     flush_rle();
                     save();
-                    run();
+                    replay_all_instantly();
                     break;
                 case CH_STOP:
                     break;
@@ -190,7 +248,7 @@ static void editloop(void) {
                 case CH_CLR:
                     break;
                 case CH_RUN:
-                    run();
+                    play_with_music();
                     break;
                 default:
                     if (handle(ch, first_keypress))
