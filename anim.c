@@ -238,30 +238,37 @@ static void editloop(void) {
             unsigned char ch = cgetc();
             unblink();
             hide_cursor();
-            switch (ch) {
-                case CH_F1:
-                    load();
-                    replay_all_instantly();
-                    break;
-                case CH_F2:
-                    flush_rle();
-                    save();
-                    replay_all_instantly();
-                    break;
-                case CH_STOP:
-                    break;
-                case CH_HOME:
-                    insert_keyframe();
-                    break;
-                case CH_CLR:
-                    break;
-                case CH_RUN:
-                    play_with_music();
-                    break;
-                default:
-                    if (handle(ch, first_keypress))
-                        store_char(ch);
-                    break;
+            if (copy_mode) {
+                if (handle(ch, first_keypress)) {
+                    store_char(ch);
+                }
+            } else {
+                switch (ch) {
+                    case CH_F1:
+                        load();
+                        replay_all_instantly();
+                        break;
+                    case CH_F2:
+                        flush_rle();
+                        save();
+                        replay_all_instantly();
+                        break;
+                    case CH_STOP:
+                        break;
+                    case CH_HOME:
+                        insert_keyframe();
+                        break;
+                    case CH_CLR:
+                        break;
+                    case CH_RUN:
+                        play_with_music();
+                        break;
+                    default:
+                        if (handle(ch, first_keypress)) {
+                            store_char(ch);
+                        }
+                        break;
+                }
             }
             show_cursor();
             first_keypress = 0;

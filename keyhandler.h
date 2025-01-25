@@ -2,6 +2,7 @@ unsigned char handle(unsigned char ch, char first_keypress);
 void handle_rle(unsigned char ch);
 
 extern char playback_mode;  // if set, some UI operations will be disabled
+extern char copy_mode;  // don't allow playing in copy mode
 
 void cursor_home(void);
 unsigned char curx(void);

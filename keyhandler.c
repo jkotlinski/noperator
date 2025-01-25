@@ -10,7 +10,7 @@
 
 #define RLE_MARKER 0
 
-static char copy_mode;
+char copy_mode;
 static char mirror_x;
 
 unsigned char color = COLOR_WHITE;
