@@ -63,14 +63,6 @@ static void print_dec(unsigned int number)
     }
 }
 
-static void print_fract(unsigned int number)
-{
-    // Prints 4.12 number.
-    print_dec(number / (1 << 12));
-    cputc('.');
-    print_dec(number % (1 << 12));
-}
-
 static unsigned int keys_in_segment()
 {
     /* Keys in segment, excluding keyframe. */
@@ -96,27 +88,35 @@ static void print_beats(unsigned int speed)
 
 static void print_speed() {
     const unsigned int speed = *(int*)(read_pos + 1);
-    cputc('-');
-    print_dec(next_keyframe() - KEYS_START);
-    cputc(' ');
     if (speed == KEYFRAME_SPEED_NONE) {
-        cputs("spd not set");
+        cputs("press b to set speed");
     } else {
-        cputs("spd:");
-        print_fract(speed);
-        cputs(" bts:");
+        cputs(" beats:");
         print_beats(speed);
+        cputs(" (");
+        print_dec(speed / ((1 << 12) / 60));
+        cputs(" kps)");
     }
 }
 
 static void print_position() {
+    int keyframe = 1;
+    unsigned char* now = read_pos;
+    if (*read_pos != CH_HOME) {
+        return; // not a keyframe
+    }
     store_screen();
     gotoxy(0, 24);
-    print_dec(read_pos - KEYS_START);
-
-    if (*read_pos == CH_HOME) {
-        print_speed();
+    // find keyframe number
+    read_pos = KEYS_START;
+    while (read_pos != now) {
+        read_pos = next_keyframe();
+        ++keyframe;
     }
+    cputc('#');
+    print_dec(keyframe);
+    gotoxy(10, 24);
+    print_speed();
 }
 
 static void goto_next_keyframe()
@@ -211,13 +211,14 @@ static void enter_beats()
     for (beats = 0; beats < sizeof(behind_speed_buf); ++beats)
         cputc(' ');
     gotoxy(0, 24);
-    cputs("bts:");
+    cputs("beats:");
     revers(1);
     cputs("   ");
     gotox(wherex() - 3);
     beats = read_digits();
     revers(0);
     calc_speed(beats);
+    restore_screen();
     print_position();
 }
 
@@ -236,9 +237,7 @@ static void goto_next_key()
         default:
             handle_rle(*read_pos++);
     }
-    if (*read_pos == CH_HOME) {
-        print_position();
-    }
+    print_position();
 }
 
 static void delete_keyframe()
