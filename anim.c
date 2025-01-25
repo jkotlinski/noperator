@@ -92,19 +92,41 @@ static void pause_one_clock()
 
 static unsigned char* run_ptr;
 
+static unsigned int prompt_speed(void)
+{
+    unsigned int speed = 0;
+    char chars[15];
+    char colors[15];
+    char* screenptr = (char*)(0x400 + 40 * 24);
+    char* colorptr = (char*)(0xd800 + 40 * 24);
+    // save chars+colors
+    memcpy(chars, screenptr, sizeof(chars));
+    memcpy(colors, colorptr, sizeof(colors));
+    memset(colorptr, 1, sizeof(colors));
+    cputsxy(0, 24, "set speed (1-9)");
+    while (speed < 1 || speed > 9) {
+        speed = cgetc() - '0';
+    }
+    speed *= 819;  // (10<<12)/50, should map to 10..90 keys/second
+    // restore chars+colors
+    memcpy(screenptr, chars, sizeof(chars));
+    memcpy(colorptr, colors, sizeof(colors));
+    return speed;
+}
+
 static void insert_keyframe()
 {
+    unsigned int speed;
     if (playback_mode) {
         run_ptr += 2;  // Skips speed.
         return;
     }
-    ++*(char*)0xd020;
+    speed = prompt_speed();
     store_char(CH_HOME);
-    store_char(KEYFRAME_SPEED_NONE);
-    store_char(KEYFRAME_SPEED_NONE >> 8);
+    store_char(speed);
+    store_char(speed >> 8);
     pause_one_clock();
     pause_one_clock();
-    --*(char*)0xd020;
 }
 
 static void run() {
