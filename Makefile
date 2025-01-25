@@ -64,7 +64,7 @@ run: nop
 
 .PHONY:	clean
 clean:
-	rm -rf $(EXELIST) *.d64 *.map *.o *.lbl *.prg *.lst *.a *.u $(DEPDIR)/*
+	rm -rf $(EXELIST) *.d64 *.map src/*.o *.lbl *.prg *.lst src/*.a *.u $(DEPDIR)/*
 
 # ------------------
 
