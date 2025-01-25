@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Directory listing for many files.
+- Undo any accidental C= upper/lower case change in animation editor.
 
 ## v2.0.0 - 2016-12-17
 
