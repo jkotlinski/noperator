@@ -30,11 +30,10 @@ Creates original animations (letter noperator style)
 
   * F2: save animation
   * B: set beats for period between this and next keyframe
-  * Space: step key forward
-  * Shift+Space: step 50 (?) keys forward
-  * Right: Jump to next keyframe
-  * Left: Jump to previous keyframe
-  * Del: Delete keyframe
-  * Inst: Insert keyframe
-  * Run: Preview play this segment
-  * ←: Go back to main menu
+  * Space: jump to next keyframe
+  * Shift+Space: jump to previous keyframe
+  * Right: step key forward
+  * Del: delete keyframe
+  * Inst: insert keyframe
+  * Run: preview play this segment
+  * ←: go back to main menu
