@@ -98,6 +98,7 @@ static unsigned char* run_ptr;
 
 static unsigned int prompt_speed(void)
 {
+    char i;
     unsigned int speed = 0;
     char chars[15];
     char colors[15];
@@ -112,9 +113,12 @@ static unsigned int prompt_speed(void)
         speed = cgetc() - '0';
     }
     // arbitrary fixup
-    --speed;
-    speed *= 7000;
-    speed += 256;
+    for (i = 8; i > 2; --i) {
+        if (speed > i) {
+            speed += speed - i;
+        }
+    }
+    speed *= 256;
     // restore chars+colors
     memcpy(screenptr, chars, sizeof(chars));
     memcpy(colorptr, colors, sizeof(colors));
