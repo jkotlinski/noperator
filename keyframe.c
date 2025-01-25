@@ -315,26 +315,18 @@ static void editloop()
                 prompt_save_anim();
                 init_screen();
                 return;
-            case CH_CURS_RIGHT:
+            case ' ':
                 goto_next_keyframe();
                 break;
-            case CH_CURS_LEFT:
+            case ' ' | 0x80:
                 goto_prev_keyframe();
                 break;
             case 'b':
                 if (*read_pos == CH_HOME)
                     enter_beats();
                 break;
-            case ' ':
+            case CH_CURS_RIGHT:
                 goto_next_key();
-                print_position();
-                break;
-            case ' ' | 0x80:
-                {
-                    char i = 10;
-                    while (--i)
-                        goto_next_key();
-                }
                 print_position();
                 break;
             case CH_DEL:

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Placeholder music ("lightforce" by Glenn Rune Gallefors)
+
+### Changed
+
+- Keyframe editor key presses
+    - Space: go to next keyframe
+    - Shift+Space: go to previous keyframe
+    - Right: go to next key
+
 ### Fixed
 
 - Directory listing for many files.
