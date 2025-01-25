@@ -111,7 +111,10 @@ static unsigned int prompt_speed(void)
     while (speed < 1 || speed > 9) {
         speed = cgetc() - '0';
     }
-    speed *= 2048;  // arbitrary
+    // arbitrary fixup
+    --speed;
+    speed *= 7000;
+    speed += 256;
     // restore chars+colors
     memcpy(screenptr, chars, sizeof(chars));
     memcpy(colorptr, colors, sizeof(colors));
