@@ -54,7 +54,7 @@ nop: 		$(OBJS) $(CLIB) nop.d64
 	    $(C1541) -attach nop.d64 -write $$exe  > /dev/null;\
 	done;\
 	$(C1541) -attach nop.d64 -delete lightforce  > /dev/null;\
-	$(C1541) -attach nop.d64 -write lightforce  > /dev/null;
+	$(C1541) -attach nop.d64 -write res/lightforce  > /dev/null;
 
 run: nop
 	x64sc nop.d64
@@ -64,7 +64,7 @@ run: nop
 
 .PHONY:	clean
 clean:
-	rm -f $(EXELIST) *.d64 *.map *.o *.lbl *.prg *.lst *.a *.u $(DEPDIR)/*
+	rm -rf $(EXELIST) *.d64 *.map *.o *.lbl *.prg *.lst *.a *.u $(DEPDIR)/*
 
 # ------------------
 
