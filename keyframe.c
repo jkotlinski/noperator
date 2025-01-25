@@ -13,7 +13,7 @@
 #include "rledec.h"
 #include "screen.h"
 
-static unsigned char* read_pos;
+static unsigned char* edit_pos;
 
 #define RLE_MARKER 0
 
@@ -22,7 +22,7 @@ static unsigned char* read_pos;
 
 static unsigned char* next_keyframe()
 {
-    unsigned char *pos = read_pos + 3;
+    unsigned char *pos = edit_pos + 3;
     for (;;) {
         if (pos >= last_char)
             return last_char;
@@ -60,7 +60,7 @@ static unsigned int keys_in_segment()
 {
     /* Keys in segment, excluding keyframe. */
     const unsigned char* const end = next_keyframe();
-    const unsigned char* pos = read_pos + 3;
+    const unsigned char* pos = edit_pos + 3;
     unsigned int count = 0;
     while (pos < end) {
         count += rle_dec(*pos);
@@ -82,7 +82,7 @@ static void print_beats(unsigned int speed)
 }
 
 static void print_speed() {
-    const unsigned int speed = *(int*)(read_pos + 1);
+    const unsigned int speed = *(int*)(edit_pos + 1);
     clear_beats_bg();
     gotoxy(10, 24);
     if (speed == KEYFRAME_SPEED_NONE) {
@@ -98,15 +98,15 @@ static void print_speed() {
 
 static void print_position() {
     int keyframe = 1;
-    unsigned char* now = read_pos;
-    if (*read_pos != CH_HOME) {
+    unsigned char* now = edit_pos;
+    if (*edit_pos != CH_HOME) {
         return; // not a keyframe
     }
     gotoxy(0, 24);
     // find keyframe number
-    read_pos = KEYS_START;
-    while (read_pos != now) {
-        read_pos = next_keyframe();
+    edit_pos = KEYS_START;
+    while (edit_pos != now) {
+        edit_pos = next_keyframe();
         ++keyframe;
     }
     cputc('#');
@@ -119,30 +119,30 @@ static void goto_next_keyframe()
     unsigned char* const end = next_keyframe();
     if (end >= last_char)
         return;
-    if (*read_pos == CH_HOME)
-        read_pos += 3;  /* Skips keyframe. */
+    if (*edit_pos == CH_HOME)
+        edit_pos += 3;  /* Skips keyframe. */
     for (;;) {
-        if (read_pos == end) {
+        if (edit_pos == end) {
             print_position();
             return;  /* Done! */
         }
-        handle_rle(*read_pos);
-        ++read_pos;
+        handle_rle(*edit_pos);
+        ++edit_pos;
     }
 }
 
 static void goto_prev_keyframe()
 {
     unsigned char* pos = KEYS_START;
-    unsigned char* new_read_pos = KEYS_START;
-    if (read_pos == KEYS_START) return;
+    unsigned char* new_edit_pos = KEYS_START;
+    if (edit_pos == KEYS_START) return;
 
-    /* Finds new_read_pos. */
+    /* Finds new_edit_pos. */
     while (1) {
         unsigned char ch = *pos;
         if (ch == CH_HOME) {
-            if (pos < read_pos) {
-                new_read_pos = pos;
+            if (pos < edit_pos) {
+                new_edit_pos = pos;
                 pos += 3;
             } else {
                 break;
@@ -157,15 +157,15 @@ static void goto_prev_keyframe()
     init_screen();
     cursor_home();
 
-    /* Replays up to new_read_pos. */
-    read_pos = KEYS_START;
-    while (read_pos < new_read_pos) {
-        const char ch = *read_pos;
+    /* Replays up to new_edit_pos. */
+    edit_pos = KEYS_START;
+    while (edit_pos < new_edit_pos) {
+        const char ch = *edit_pos;
         if (ch == CH_HOME) {
-            read_pos += 3;
+            edit_pos += 3;
         } else {
             handle_rle(ch);
-            ++read_pos;
+            ++edit_pos;
         }
     }
 
@@ -179,7 +179,7 @@ static void calc_speed(unsigned char beats)
     speed <<= 12;
     speed /= TICKS_PER_BEAT * beats;
     if (speed >= 0x10000u) return;
-    *(unsigned int*)(read_pos + 1) = speed;
+    *(unsigned int*)(edit_pos + 1) = speed;
 }
 
 static void enter_beats(int beats)
@@ -213,35 +213,35 @@ static void enter_beats(int beats)
 
 static void goto_next_key()
 {
-    if (read_pos == last_char) return;
-    switch (*read_pos) {
+    if (edit_pos == last_char) return;
+    switch (*edit_pos) {
         case CH_HOME:  /* Keyframe */
-            read_pos += 3;
+            edit_pos += 3;
             break;
         case RLE_MARKER:
-            handle_rle(*read_pos++);
-            handle_rle(*read_pos++);
+            handle_rle(*edit_pos++);
+            handle_rle(*edit_pos++);
             /* Fall through! */
         default:
-            handle_rle(*read_pos++);
+            handle_rle(*edit_pos++);
     }
     print_position();
 }
 
 static void delete_keyframe()
 {
-    if (*read_pos != CH_HOME) return;
+    if (*edit_pos != CH_HOME) return;
     last_char -= 3;
-    memmove(read_pos, read_pos + 3, last_char - read_pos);
+    memmove(edit_pos, edit_pos + 3, last_char - edit_pos);
 }
 
 static void insert_keyframe()
 {
-    if (*read_pos == CH_HOME) return;
-    memmove(read_pos + 3, read_pos, last_char - read_pos);
-    read_pos[0] = CH_HOME;
-    read_pos[1] = KEYFRAME_SPEED_NONE;
-    read_pos[2] = KEYFRAME_SPEED_NONE;
+    if (*edit_pos == CH_HOME) return;
+    memmove(edit_pos + 3, edit_pos, last_char - edit_pos);
+    edit_pos[0] = CH_HOME;
+    edit_pos[1] = KEYFRAME_SPEED_NONE;
+    edit_pos[2] = KEYFRAME_SPEED_NONE;
     last_char += 3;
     print_position();
 }
@@ -249,7 +249,7 @@ static void insert_keyframe()
 static void play_current_segment()
 {
     unsigned int acc = 1 << 12;
-    unsigned int speed = *(int*)(read_pos + 1);
+    unsigned int speed = *(int*)(edit_pos + 1);
     unsigned char* const end = next_keyframe();
     unsigned char rle_left = 0;
     init_music();
@@ -257,7 +257,7 @@ static void play_current_segment()
 
     ticks = 0;
 
-    read_pos += 3;
+    edit_pos += 3;
 
     while (1)
     {
@@ -273,13 +273,13 @@ static void play_current_segment()
                 handle(rle_char, 1);
                 --rle_left;
             } else while (1) {
-                if (read_pos == end) {
+                if (edit_pos == end) {
                     stop_playing();
                     goto_prev_keyframe();
                     return;
                 }
-                rle_left = rle_dec(*read_pos);
-                ++read_pos;
+                rle_left = rle_dec(*edit_pos);
+                ++edit_pos;
                 if (rle_left) {
                     handle(rle_char, 1);
                     --rle_left;
@@ -324,7 +324,7 @@ static void editloop()
             case CH_LEFTARROW:
                 return;
             default:
-                if (*read_pos == CH_HOME && ch >= '1' && ch <= '9') {
+                if (*edit_pos == CH_HOME && ch >= '1' && ch <= '9') {
                     enter_beats(ch - '0');
                 }
                 break;
@@ -341,7 +341,7 @@ void keyframe_editor(void)
 
     if (!read) return;
 
-    read_pos = KEYS_START;
+    edit_pos = KEYS_START;
     last_char = KEYS_START + read;
 
     init_screen();
