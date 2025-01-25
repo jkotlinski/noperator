@@ -107,7 +107,7 @@ static unsigned int prompt_speed(void)
     while (speed < 1 || speed > 9) {
         speed = cgetc() - '0';
     }
-    speed *= 819;  // (10<<12)/50, should map to 10..90 keys/second
+    speed *= 819;  // (10<<12)/50, maps to roughly 10..90 keys/second
     // restore chars+colors
     memcpy(screenptr, chars, sizeof(chars));
     memcpy(colorptr, colors, sizeof(colors));
