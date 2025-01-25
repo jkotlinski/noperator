@@ -140,6 +140,7 @@ static void editloop(void) {
     unsigned char ticks_since_last_key;
     while (last_char < (unsigned char*)0xd000) {
         static unsigned char blink_delay = 1;
+        reset_screen_and_font_address(); // Undoes any C= upper/lower case change.
         pause_one_clock();
         if (--blink_delay == 0) {
             blink();
