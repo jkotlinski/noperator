@@ -220,8 +220,15 @@ static void editloop(void) {
     unsigned char ticks_since_last_key;
     while (last_char < (unsigned char*)0xd000) {
         static unsigned char blink_delay = 1;
+        const unsigned char near_end = (last_char > (unsigned char*)0xcc00);
         reset_screen_and_font_address(); // Undoes any C= upper/lower case change.
+        if (near_end) {
+            ++*(char*)0xd020; // Warning! RAM is about to get full.
+        }
         pause_one_clock();
+        if (near_end) {
+            ++*(char*)0xd020;
+        }
         if (--blink_delay == 0) {
             blink();
             blink_delay = 10;
