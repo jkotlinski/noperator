@@ -11,4 +11,4 @@ _init_music:
 :   rts
 
 _ticks_per_step:
-    .byte 0
+    .byte 7	; lightforce

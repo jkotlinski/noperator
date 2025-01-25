@@ -40,34 +40,31 @@ void write_movie()
     play_movie();
 }
 
-void load_music()
+void load_music(const char* filename)
 {
-    unsigned int read;
-    ls();
-    cputs("music> ");
-    if (!mygets(movie.music_path)) return;
-    read = cbm_load(movie.music_path, 8, (void*)0x1000);
-    if (read == 0) return;
+    unsigned int read = cbm_load(filename, 8, (void*)0x1000);
     if (read > 0x1800) {
         cputs("too big:(");
         while (1) ++*(char*)0xd020;
     }
-    gotoxy(0, wherey() + 1);
-    cputs("ticks per step? (1-9, enter=6)");
-    ticks_per_step = cgetc() - '0';
-    if (ticks_per_step < 1 || ticks_per_step > 9) {
-        ticks_per_step = 6;
-    }
 }
 
-void play_movie()
+void select_music()
+{
+    ls();
+    cputs("music> ");
+    mygets(movie.music_path);
+    load_music(movie.music_path);
+}
+
+char play_movie()
 {
     unsigned int acc = 1 << 12;
     unsigned int speed = KEYFRAME_SPEED_NONE;
     unsigned char rle_left = 0;
 
     if (cbm_load(MOVIE_CONFIG, 8, &movie) != sizeof(movie))
-        return;
+        return 0;
     anim_reset();
     loader_init();
     loader_load(movie.music_path);
@@ -121,5 +118,6 @@ void play_movie()
             acc -= (1 << 12);
         }
     }
+    return 1;
 }
 

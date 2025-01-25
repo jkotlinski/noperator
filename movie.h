@@ -4,8 +4,9 @@
 void write_movie(void);
 void scratch_movie(void);
 
-void load_music(void);
+void select_music(void);
+void load_music(const char* filename);
 
-void play_movie(void);
+char play_movie(void);
 
 #endif  /* MOVIE_H */
