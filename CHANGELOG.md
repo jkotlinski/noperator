@@ -9,7 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Placeholder music ("lightforce" by Glenn Rune Gallefors)
+- Default music ("Lightforce" by GRG)
+- Animation editor
+    - Set keyframe speed 1-9 directly. (1=slowest, 9=fastest)
+    - Play back animation with music.
 
 ### Changed
 
