@@ -16,6 +16,7 @@
 #include "rledec.h"
 
 #define DISPLAY_BASE ((char*)0x400)
+#define DEFAULT_SPEED 0x1100 // speed 6
 
 unsigned char run_length;
 char prev_ch;
@@ -123,14 +124,15 @@ static unsigned int prompt_speed(void)
     return speed;
 }
 
-static void insert_keyframe()
+static void insert_keyframe(unsigned int speed)
 {
-    unsigned int speed;
     if (playback_mode) {
         run_ptr += 2;  // Skips speed.
         return;
     }
-    speed = prompt_speed();
+    if (speed == 0) {
+        speed = prompt_speed();
+    }
     store_char(CH_HOME);
     store_char(speed);
     store_char(speed >> 8);
@@ -265,7 +267,7 @@ static void editloop(void) {
                     case CH_STOP:
                         break;
                     case CH_HOME:
-                        insert_keyframe();
+                        insert_keyframe(0);
                         break;
                     case CH_CLR:
                         break;
@@ -291,7 +293,7 @@ static void editloop(void) {
 void anim_editor(void) {
     init();
     playback_mode = 0;
-    insert_keyframe();
+    insert_keyframe(DEFAULT_SPEED);
     store_char(MOVIE_START_MARKER);
     editloop();
 }
