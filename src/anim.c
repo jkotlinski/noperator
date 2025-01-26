@@ -39,12 +39,10 @@ static void init(void) {
 
 static void do_store(char ch) {
     *last_char = ch;
-    if (last_char >= (unsigned char*)0xcf00) {
-        /* running out of RAM warning */
-        ++*(unsigned char*)0xd020;
-    }
     if (last_char != (unsigned char*)0xcfff) {
         ++last_char;
+    } else {
+        ++*(unsigned char*)0xd020; // out of RAM
     }
 }
 
