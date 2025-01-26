@@ -422,7 +422,7 @@ unsigned char handle(unsigned char ch, char first_keypress) {
             cursor_home();
             color = COLOR_WHITE;
             *(char*)0xd020 = 0;
-            *(char*)0xd020 = 1;
+            *(char*)0xd021 = 0;
             break;
         case CH_F3: ++*(char*)0xd020; break;
         case CH_F4: ++*(char*)0xd021; break;
