@@ -189,6 +189,7 @@ static void play_with_music() {
                     case CH_HOME:
                         speed = *run_ptr++;
                         speed |= *run_ptr++ << 8;
+                        acc = 1 << 12;
                         break;
                     case 0:  /* RLE */
                         rle_dec(0);

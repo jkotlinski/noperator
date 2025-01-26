@@ -101,6 +101,7 @@ char play_movie()
                     case CH_HOME:
                         speed = loader_getc();
                         speed |= loader_getc() << 8;
+                        acc = 1 << 12;
                         break;
                     case 0:  /* RLE */
                         rle_dec(0);
