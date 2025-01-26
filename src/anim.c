@@ -235,7 +235,7 @@ static void editloop(void) {
         }
         pause_one_clock();
         if (near_end) {
-            ++*(char*)0xd020;
+            --*(char*)0xd020;
         }
         if (--blink_delay == 0) {
             blink();
