@@ -49,7 +49,7 @@ build/nop: 	$(OBJS) $(CLIB) bin/nop.d64
 	$(C1541) -attach bin/nop.d64 -delete lightforce  > /dev/null;\
 	$(C1541) -attach bin/nop.d64 -write res/lightforce  > /dev/null;
 
-run: build/nop
+run: bin/nop.d64
 	x64sc bin/nop.d64
 
 # --------------------------------------------------------------------------
