@@ -144,12 +144,8 @@ static void replay_all_instantly() {
     playback_mode = 1;
     anim_reset();
     while (run_ptr < last_char) {
-        if (*run_ptr == CH_HOME) {
-            run_ptr += 3;
-        } else {
-            handle_rle(*run_ptr);
-            ++run_ptr;
-        }
+        handle_rle(*run_ptr);
+        ++run_ptr;
     }
     playback_mode = 0;
 }
