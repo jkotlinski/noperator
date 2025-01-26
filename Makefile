@@ -37,9 +37,6 @@ OBJS := $(addprefix build/,$(addsuffix .o,$(notdir $(basename ${SRCS}))))
 -include $(OBJS:build/%.o=build/%.u)
 
 # --------------------------------------------------------------------------
-# Rules how to make each one of the binaries
-
-EXELIST=build/nop
 
 bin/nop.d64:
 	@mkdir -p bin
@@ -47,10 +44,8 @@ bin/nop.d64:
 
 build/nop: 	$(OBJS) $(CLIB) bin/nop.d64
 	@$(LD) -o $@ $(OBJS) $(CLIB)
-	@for exe in $(EXELIST); do\
-	    $(C1541) -attach bin/nop.d64 -delete $$exe  > /dev/null;\
-	    $(C1541) -attach bin/nop.d64 -write $$exe  > /dev/null;\
-	done;\
+	$(C1541) -attach bin/nop.d64 -delete nop  > /dev/null;\
+	$(C1541) -attach bin/nop.d64 -write build/nop  > /dev/null;\
 	$(C1541) -attach bin/nop.d64 -delete lightforce  > /dev/null;\
 	$(C1541) -attach bin/nop.d64 -write res/lightforce  > /dev/null;
 
