@@ -19,7 +19,9 @@ static struct Movie
     char ticks_per_step;
     char anim_path[16];
 };
-static struct Movie movie;
+static struct Movie movie = {
+    "lightforce"
+};
 
 #define MOVIE_CONFIG "movrc"
 
