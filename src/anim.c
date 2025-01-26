@@ -177,19 +177,27 @@ static void play_with_music() {
                 handle(rle_char, 1);
                 --rle_left;
             } else while (1) {
-                if (run_ptr == last_char) {
+                unsigned char ch;
+                if (run_ptr >= last_char) {
                     stop_playing();
                     playback_mode = 0;
                     return;
                 }
-                if (*run_ptr == CH_HOME) {
-                    speed = *++run_ptr;
-                    speed |= *++run_ptr << 8;
-                    ++run_ptr;
-                    continue;
+                switch (ch = *run_ptr++) {
+                    case CH_HOME:
+                        speed = *run_ptr++;
+                        speed |= *run_ptr++ << 8;
+                        break;
+                    case 0:  /* RLE */
+                        rle_dec(0);
+                        rle_dec(*run_ptr++);
+                        rle_left = rle_dec(*run_ptr++);
+                        break;
+                    default:
+                        rle_char = ch;
+                        rle_left = 1;
+                        break;
                 }
-                rle_left = rle_dec(*run_ptr);
-                ++run_ptr;
                 if (rle_left) {
                     handle(rle_char, 1);
                     --rle_left;
